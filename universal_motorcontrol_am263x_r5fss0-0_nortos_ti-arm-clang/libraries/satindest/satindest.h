@@ -131,10 +131,6 @@ extern void SATINDEST_setParams(SATINDEST_Handle handle);
 
 /*****************************************************************************/
 
-//static inline void
-//SELFCOMMM_run(SELFCOMMM_Handle handle, const float32_t vdc_ref,
-//       const float32_t id_fb, const float32_t iq_fb, float32_t *pOutValue1, float32_t *pOutValue2, float32_t *pOutValue3)
-
 // fonksiyonun inputlarini girmeyi unutma
 
 static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t vdc_ref, const float32_t id_fb, const float32_t iq_fb)
@@ -142,357 +138,197 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t vdc_re
 
     SATINDEST_Obj *obj = (SATINDEST_Obj *)handle;
 
-    if (obj.VariableInit == 1.0f)                                                                                                                                                                  \
-           {  obj.VariableInit = FALSE;                                                                                                                                                                   \
-              v.ExecuteEnable = FALSE;                                                                                                                                                                  \
-              v.InjSineEnable = FALSE;                                                                                                                                                                  \
-              v.OpPtNo = 0;                                                                                                                                                                             \
-              v.Axis = D_AXIS; /* Initialize. */                                                                                                                                                        \
-              v.EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION; /* To shorthen the test. As Idc is zero at the beginning (OpPtNo is initialized to zero), no need for neg current.*/                  \
-                                                                                                                                                                                                        \
-              v.CtrlCycleCounter = 0;                                                                                                                                                                   \
-              v.InjSampleCounter = 0;                                                                                                                                                                   \
-              v.InjSinePrdCounter = 0;                                                                                                                                                                  \
-                                                                                                                                                                                                        \
-              /* Easy division for fixed-point implementation: InjCurHalfPrdSampleNo = 0.5*Fs/InjCurFreq. _IQ0 = _IQmpy(_IQ0, _IQN) */                                                                  \
-              v.InjCurHalfPrdSampleNo = _IQdiv2(_IQmpy(v.Nbase, _IQdiv(_IQ(1.0), v.InjCurFreqInit)) ); /* Here, '_IQdiv' won't overflow because InjCurFreq > 1 p.u. mostly. */                          \
-                                                                                                                                                                                                        \
-              if ( (_IQdiv2(_IQmpy(v.Nbase, _IQdiv(_IQ(1.0), v.InjCurFreqInit)) ) - v.InjCurHalfPrdSampleNo) >= _IQ(0.5) ) /* Round the float variable into integer. Useful only in FLOAT_MATH */       \
-                 {  v.InjCurHalfPrdSampleNo++;}                                                                                                                                                         \
-                                                                                                                                                                                                        \
-              /* Calculate the count number for half period of square wave current: DC settling count + (AC settling prd + DFT period)*AC Period count */                                               \
-              v.dcCurHalfPrdSampleNo = v.dcSettleWait_SampleNo + (v.InjSettleWait_PrdNo + 1)*(2*v.InjCurHalfPrdSampleNo);                                                                               \
-                                                                                                                                                                                                        \
-              /* Notice that '_IQdiv' works for division of normal intergers as well as '_iq' format. */                                                                                                \
-              v.InjCurAngleStep = _IQdiv( (1UL), (2*v.InjCurHalfPrdSampleNo) );                                                                                                                         \
-                                                                                                                                                                                                        \
-              /* We can update inj. freq. after selecting 'InjCurHalfPrdSampleNo' because exact freq. is now determined with 'InjCurHalfPrdSampleNo'. */                                                \
-              v.InjCurFreq = _IQdiv(v.InjCurAngleStep, _IQdiv((1UL), v.Nbase) ); /* 1/Nbase = Fbase/Fs */                                                                                               \
-                                                                                                                                                                                                        \
-              v.InjCurAngle = _IQ(0.0);                                                                                                                                                                 \
-              v.VrealDFT = _IQ(0.0);                                                                                                                                                                    \
-              v.VimagDFT = _IQ(0.0);                                                                                                                                                                    \
-              v.IrealDFT = _IQ(0.0);                                                                                                                                                                    \
-              v.IimagDFT = _IQ(0.0);                                                                                                                                                                    \
-                                                                                                                                                                                                        \
-              /* 'InputGainDFT' is to prevent overflow in DFT memories. Normally we need to divide by (N/2). (1UL<<(30-GLOBAL_Q)) is to use all 32-bit capacity. */                                     \
-              v.InputGainDFT = _IQmpy2(v.InjCurAngleStep);                                                                                                                                              \
-                                                                                                                                                                                                        \
-              v.Finish = FALSE;                                                                                                                                                                         \
+
+        /* Initialize some variables. */
+        /* This enables safe start and usage of this routine again without resetting CPU. */
+
+
+    if (obj.VariableInit == 1.0f)
+           {  obj.VariableInit = 0.0f;
+              obj.ExecuteEnable = 0.0f;
+              obj.InjSineEnable = 0.0f;
+              obj.OpPtNo = 0.0;
+              obj.Axis = D_AXIS; /* Initialize. */
+              obj.EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION; /* To shorthen the test. As Idc is zero at the beginning (OpPtNo is initialized to zero), no need for neg current.*/
+
+              obj.CtrlCycleCounter = 0.0f;
+              obj.InjSampleCounter = 0.0f;
+              obj.InjSinePrdCounter = 0.0f;
+
+
+              obj.InjCurHalfPrdSampleNo = (obj.Nbase * (1.0f / obj.InjCurFreqInit))/2; /* Here, '_IQdiv' won't overflow because InjCurFreq > 1 p.u. mostly. */
+
+              if ( (((obj.Nbase * (1.0f / obj.InjCurFreqInit)) / 2.0f)  - obj.InjCurHalfPrdSampleNo) >= 0.5f ) /* Round the float variable into integer. Useful only in FLOAT_MATH */
+                               {  obj.InjCurHalfPrdSampleNo++;}
+
+
+              /* Calculate the count number for half period of square wave current: DC settling count + (AC settling prd + DFT period)*AC Period count */
+              obj.dcCurHalfPrdSampleNo = obj.dcSettleWait_SampleNo + (obj.InjSettleWait_PrdNo + 1.0f) * (2.0f * obj.InjCurHalfPrdSampleNo);
+
+              /* Notice that '_IQdiv' works for division of normal intergers as well as '_iq' format. */
+              obj.InjCurAngleStep = 1.0f / (2.0f * obj.InjCurHalfPrdSampleNo);
+
+              /* We can update inj. freq. after selecting 'InjCurHalfPrdSampleNo' because exact freq. is now determined with 'InjCurHalfPrdSampleNo'. */
+              obj.InjCurFreq = obj.InjCurAngleStep / (1.0f / obj.Nbase); /* 1/Nbase = Fbase/Fs */
+
+              obj.InjCurAngle = 0.0f;
+              obj.VrealDFT = 0.0f;
+              obj.VimagDFT = 0.0f;
+              obj.IrealDFT = 0.0f;
+              obj.IimagDFT = 0.0f;
+
+              /* 'InputGainDFT' is to prevent overflow in DFT memories. Normally we need to divide by (N/2). (1UL<<(30-GLOBAL_Q)) is to use all 32-bit capacity. */
+              obj.InputGainDFT = 2.0f * obj.InjCurAngleStep;
+
+              obj.Finish = 0.0f;
            }
 
-  /**********************************************************************************/
+    /* DIRECT DISCRETE FOURIER TRANSFORM. */
+       /* 'v.InputGainDFT' is to prevent overflow in the memories. */
+       if (obj.InjSinePrdCounter == obj.InjSettleWait_PrdNo)
+          {  obj.SinDFT = _IQsinPU(v.InjCurAngle);
+             obj.CosDFT = _IQcosPU(v.InjCurAngle);
 
-    if (obj->VariableInit == 1.0f)
-       {
-       obj->VariableInit = 0.0f;
-       obj->VoltageFound = 0.0f;
-       obj->VoltageNotFound = 0.0f;
-       obj->VolMinAssigned = 0.0f;
-       obj->VolMaxAssigned = 0.0f;
-       obj->ExecuteEnable = 0.0f;
+             obj.VrealDFT += (obj.Vref * obj.CosDFT * obj.InputGainDFT);
+             obj.VimagDFT -= (obj.Vref * obj.SinDFT * obj.InputGainDFT);
+             obj.IrealDFT += (obj.Ifbk * obj.CosDFT * obj.InputGainDFT);
+             obj.IimagDFT -= (obj.Ifbk * obj.SinDFT * obj.InputGainDFT);
 
-       obj->InjPrdCounter = 0.0f;
-       obj->InjSampleCounter = 0.0f;
-       obj->FirstLdqEstCheck = 0.0f;
-       obj->FirstVolMaxLimHitCheck = 0.0f;
-       obj->FirstFreqMinLimHitCheck = 0.0f;
-
-       obj->InjVolHalfPrdSampleNo = obj->InjVolHalfPrdSampleNoInit;
-          /* _IQdiv can be used for division of integers. */
-//          InjVolAngleStep = _IQdiv( (1UL), (2*InjVolHalfPrdSampleNo) );
-       obj->InjVolAngleStep = (1.0f/(2.0f*obj->InjVolHalfPrdSampleNo));
-
-       obj->InjVolMagn = obj->InjVolMagnInit;
-//          InjVolFreq = _IQdiv(InjVolAngleStep, AngIntgGain);
-       obj->InjVolFreq = obj->InjVolAngleStep/obj->AngIntgGain;
-       obj->InjVolAngle = 0.0f;
-       obj->InjVolAngle_ZOHComp = 0.0f;
-//          InputGainDFT = _IQmpy2(InjVolAngleStep);
-       obj->InputGainDFT = 2.0f*obj->InjVolAngleStep;
-
-       obj->VdRealDFT = 0.0f;
-       obj->VdImagDFT = 0.0f;
-       obj->IdRealDFT = 0.0f;
-       obj->IdImagDFT = 0.0f;
-       obj->IqRealDFT = 0.0f;
-       obj->IqImagDFT = 0.0f;
-       obj->ElecThetaUnsat = 0.0f;
-
-       obj->ElecTheta = 0.0f;
-       obj->Finish = 0.0f;
-
-       obj->i12 = 0;
-       }
+          }
 
 
+       /* INJECTION PERIOD HANDLER: Enables signal detection by DFT and inductance calculation. */
+       /* In this ctrl cycle, the last sample of the injected current period  is being applied. */
+       if ( obj.InjSampleCounter == (2.0f * obj.InjCurHalfPrdSampleNo) )
+          {  obj.InjSampleCounter = 0.0f;
+             obj.InjSinePrdCounter++;
+             /* Just after the injection period for DFT finishes, enable execution. */
+             if (obj.InjSinePrdCounter == (obj.InjSettleWait_PrdNo + 1.0f))
+                {  obj.InjSinePrdCounter = 0.0f;
+                   obj.ExecuteEnable = 1.0f;}
+          }
 
-    obj->Udc=vdc_ref/obj->Vdc_Base;
-    obj->IdFbk=id_fb/obj->I_Base;
-    obj->IqFbk=iq_fb/obj->I_Base;
 
+       /* PARAMETER CALCULATIONS */
+       if (obj.ExecuteEnable == 1.0f)
+          {  obj.ExecuteEnable = 0.0f;
 
+             /* SIGNAL AMPLITUDE & PHASE CALCULATION. */
+             v.VphaseDFT = _IQatan2PU(v.VimagDFT, v.VrealDFT) - _IQdiv2(v.InjCurAngleStep); /* Half-sample ZOH delay is taken into account. */
+             v.IphaseDFT = _IQatan2PU(v.IimagDFT, v.IrealDFT);
+             v.VmagnDFT = _IQsqrt( _IQmpy(v.VrealDFT, v.VrealDFT) + _IQmpy(v.VimagDFT, v.VimagDFT) );
+             v.ImagnDFT = _IQsqrt( _IQmpy(v.IrealDFT, v.IrealDFT) + _IQmpy(v.IimagDFT, v.IimagDFT) );
 
-//
-//
-//
-    /* DISCRETE FOURIER TRANSFORM: Find the amplitude and phase of the voltage and current at the injection frequency. */
-    /* Multiplication by 'InputGainDFT' is to get DFT amplitude and equivalent to dividing by N/2. 'InputGainDFT' is updated when frequency changes. So, no problem. */
-    if (obj->InjPrdCounter == obj->InjSettlePrd)
-       {
-//          CosDFT = _IQcosPU(InjVolAngle);
-//          SinDFT = _IQsinPU(InjVolAngle);
+             /* Reset DFT variables for re-use in the next operating point. */
+             obj.VrealDFT = 0.0f;
+             obj.VimagDFT = 0.0f;
+             obj.IrealDFT = 0.0f;
+             obj.IimagDFT = 0.0f;
 
-//        obj->CosDFT = cosf(obj->InjVolAngle*MATH_TWO_PI);
-//        obj->SinDFT = sinf(obj->InjVolAngle*MATH_TWO_PI);
-
-        obj->CosDFT = cosf(obj->InjVolAngle*MATH_TWO_PI);
-        obj->SinDFT = sinf(obj->InjVolAngle*MATH_TWO_PI);
-
-//          VdRealDFT += _IQmpy(_IQmpy(_IQmpy(_IQmpy(InjVolMagn, _IQcosPU(InjVolAngle)), Udc), CosDFT), InputGainDFT);
-//          VdImagDFT -= _IQmpy(_IQmpy(_IQmpy(_IQmpy(InjVolMagn, _IQcosPU(InjVolAngle)), Udc), SinDFT), InputGainDFT);
-
-        obj->VdRealDFT += obj->InjVolMagn* cosf(obj->InjVolAngle*MATH_TWO_PI)* obj->Udc* obj->CosDFT* obj->InputGainDFT;
-        obj->VdImagDFT -= obj->InjVolMagn* cosf(obj->InjVolAngle*MATH_TWO_PI)* obj->Udc* obj->SinDFT* obj->InputGainDFT;
-
-//          IdRealDFT += _IQmpy(_IQmpy(IdFbk, CosDFT), InputGainDFT);
-//          IdImagDFT -= _IQmpy(_IQmpy(IdFbk, SinDFT), InputGainDFT);
-//
-//          IqRealDFT += _IQmpy(_IQmpy(IqFbk, CosDFT), InputGainDFT);
-//          IqImagDFT -= _IQmpy(_IQmpy(IqFbk, SinDFT), InputGainDFT);
-
-        obj->IdRealDFT += obj->IdFbk* obj->CosDFT*obj->InputGainDFT;
-        obj->IdImagDFT -= obj->IdFbk* obj->SinDFT*obj->InputGainDFT;
-
-        obj->IqRealDFT += obj->IqFbk* obj->CosDFT*obj->InputGainDFT;
-        obj->IqImagDFT -= obj->IqFbk* obj->SinDFT*obj->InputGainDFT;
-       }
-//
-    /* INJECTION PERIOD HANDLER: Enables signal detection by DFT and inductance calculation. */
-    /* In this ctrl cycle, the last sample of the injected voltage period  is being applied. */
-    /* At the end of this ctrl cycle, there will be zero-crossing of the current due to almost 90 degree phase shift at high frequency. Thus, if V or f changes now, no transient is seen. */
-    if ( obj->InjSampleCounter == (2.0f*obj->InjVolHalfPrdSampleNo) )
-       {  obj->InjSampleCounter = 0.0f;
-       obj->InjPrdCounter++;
-          /* Just after the injection period for DFT finishes, enable execution. */
-          if (obj->InjPrdCounter == (obj->InjSettlePrd + 1.0f))
-             {  obj->InjPrdCounter = 0.0f;
-                obj->ExecuteEnable = 1.0f;}
-       }
-//
-//
-    /* MAKE CALCULATIONS */
-    if (obj->ExecuteEnable == 1.0f)
-       {  obj->ExecuteEnable = 0.0f;
-
-//          /* 1- SIGNAL AMPLITUDE and PHASE CALCULATION */
-//          /* D-axis injection voltage amplitude and phase */
-//          VdMagnDFT = _IQsqrt( _IQmpy(VdRealDFT, VdRealDFT) + _IQmpy(VdImagDFT, VdImagDFT) );
-//          VdPhaseDFT = _IQatan2PU(VdImagDFT, VdRealDFT);
-//
-//          /* D-axis current amplitude and phase. */
-//          IdMagnDFT = _IQsqrt( _IQmpy(IdRealDFT, IdRealDFT) + _IQmpy(IdImagDFT, IdImagDFT) );
-//          IdPhaseDFT = _IQatan2PU(IdImagDFT, IdRealDFT);
-//
-//          /* Q-axis current amplitude. */
-//          IqMagnDFT = _IQsqrt( _IQmpy(IqRealDFT, IqRealDFT) + _IQmpy(IqImagDFT, IqImagDFT) );
-
-            /* 1- SIGNAL AMPLITUDE and PHASE CALCULATION */
-            /* D-axis injection voltage amplitude and phase */
-
-//       obj->VdMagnDFT = ti_arm_sqrt((obj->VdRealDFT* obj->VdRealDFT) + (obj->VdImagDFT* obj->VdImagDFT));
-//       obj->VdPhaseDFT = ti_arm_atan2(obj->VdImagDFT,obj->VdRealDFT);
-//
-//            /* D-axis current amplitude and phase. */
-//       obj->IdMagnDFT = ti_arm_sqrt( (obj->IdRealDFT* obj->IdRealDFT) + (obj->IdImagDFT* obj->IdImagDFT) );
-//       obj->IdPhaseDFT = ti_arm_atan2(obj->IdImagDFT, obj->IdRealDFT);
-//
-//            /* Q-axis current amplitude. */
-//       obj->IqMagnDFT = ti_arm_sqrt( (obj->IqRealDFT* obj->IqRealDFT) + (obj->IqImagDFT* obj->IqImagDFT) );
-
-       obj->VdMagnDFT = sqrtf((obj->VdRealDFT* obj->VdRealDFT) + (obj->VdImagDFT* obj->VdImagDFT));
-       obj->VdPhaseDFT = atan2f(obj->VdImagDFT,obj->VdRealDFT);
-
-            /* D-axis current amplitude and phase. */
-       obj->IdMagnDFT = sqrtf( (obj->IdRealDFT* obj->IdRealDFT) + (obj->IdImagDFT* obj->IdImagDFT) );
-       obj->IdPhaseDFT = atan2f(obj->IdImagDFT, obj->IdRealDFT);
-
-            /* Q-axis current amplitude. */
-       obj->IqMagnDFT = sqrtf( (obj->IqRealDFT* obj->IqRealDFT) + (obj->IqImagDFT* obj->IqImagDFT) );
+             v.Lest = _IQmpy(_IQdiv(v.VmagnDFT, _IQmpy(v.ImagnDFT, v.InjCurFreq)), _IQsinPU(v.VphaseDFT - v.IphaseDFT) );
+             if (obj.MotorType == MtrType_INDUCTION)
+                {  obj.Lsigma[obj.OpPtNo] = obj.Lest;}
+             else if ( (obj.MotorType == MtrType_IPMSM) || (obj.MotorType == MtrType_SYNRM) )
+                { if (obj.Axis == D_AXIS)
+                     {  obj.Ld[LDQ_TEST_NUMBER + obj.CurrentSign*(int16)v.OpPtNo] = obj.Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
+                  else
+                     {  obj.Lq[LDQ_TEST_NUMBER + obj.CurrentSign*(int16)obj.OpPtNo] = obj.Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
+                }
+          }
 
 
 
+       /* ESTIMATION STEPS */
+       obj.CtrlCycleCounter++;
+       if (obj.EstStep == LdqEstStep_START)
+          {  obj.CurrentSign = sgn_POSITIVE;
+             if (obj.CtrlCycleCounter == (obj.dcCurHalfPrdSampleNo>>1) )
+                {  obj.CtrlCycleCounter = 0.0f;
+                   obj.EstStep = LdqEstStep_NEGATIVE_CURRENT_ESTIMATION;}
+          }
 
-          /* Reset DFT variables. */
-       obj->VdRealDFT = 0.0f;
-       obj->VdImagDFT = 0.0f;
-       obj->IdRealDFT = 0.0f;
-       obj->IdImagDFT = 0.0f;
-       obj->IqRealDFT = 0.0f;
-       obj->IqImagDFT = 0.0f;
+       else if (obj.EstStep == LdqEstStep_NEGATIVE_CURRENT_ESTIMATION)
+          {  obj.CurrentSign = sgn_NEGATIVE;
+             if (obj.CtrlCycleCounter >= obj.dcSettleWait_SampleNo)
+                {  obj.InjSineEnable = 1.0f;}
+             if (obj.CtrlCycleCounter == obj.dcCurHalfPrdSampleNo)
+                {  obj.CtrlCycleCounter = 0.0f;
+                   obj.InjSineEnable = 1.0f;
+                   obj.EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION;}
+          }
 
-          /* Stator current vector amplitude. */
-       obj->IsMagn = ((obj->IdMagnDFT* obj->IdMagnDFT) + (obj->IqMagnDFT* obj->IqMagnDFT));
-//       obj->IsMagn = 0.1f;
+       else if (obj.EstStep == LdqEstStep_POSITIVE_CURRENT_ESTIMATION)
+          {  obj.CurrentSign = sgn_POSITIVE;
+             if (obj.CtrlCycleCounter >= obj.dcSettleWait_SampleNo)
+                {  obj.InjSineEnable = 1.0f;}
+             if (obj.CtrlCycleCounter == obj.dcCurHalfPrdSampleNo)
+                {  obj.CtrlCycleCounter = 0.0f;
+                   obj.InjSineEnable = 0.0f;
+                   if (obj.MotorType == MtrType_INDUCTION)
+                      {  obj.EstStep = LdqEstStep_OPERATING_POINT_CHANGE;}
+                   else if ( (obj.MotorType == MtrType_IPMSM) || (obj.MotorType == MtrType_SYNRM) )
+                      {  obj.EstStep = LdqEstStep_FINISH;}
+                }
+          }
 
-          /* If 'IsMagn' leaves the allowed range at any electrical angle, find a new injection signal. */
-          if ((obj->VoltageFound == 1.0f) && ((obj->IsMagn < obj->IsMagnMinLim) || (obj->IsMagn > obj->IsMagnMaxLim)))
-             {  obj->VoltageFound = 0.0f;
-             obj->VolMinAssigned = 0.0f;
-             obj->VolMaxAssigned = 0.0f;
-             obj->MinSearchVol = 0.0f;
-             obj->MaxSearchVol = 0.0f;}
-
-
-          /* 2- INJECTION SIGNAL SELECTION */
-          /* Determine the injection voltage magnitude and frequency.  */
-          if (obj->VoltageFound == 0.0f)
-             {
-                if (obj->IsMagn < obj->IsMagnMinLim)
-                   {  obj->MinSearchVol = obj->InjVolMagn;
-                   obj->VolMinAssigned = 1.0f;
-
-                      if (obj->VolMaxAssigned == 0.0f)
-                         {  //InjVolMagn = _IQmpy2(InjVolMagn);
-                          obj->InjVolMagn = 2.0f*(obj->InjVolMagn);
-
-                            /* Check limits. */
-                            if (obj->InjVolMagn > obj->InjVolMagnMaxLim)
-                               {  obj->InjVolMagn = obj->InjVolMagnMaxLim;
-                               obj->FirstVolMaxLimHitCheck++;
-
-                                  /* If max voltage is not enough, then decrese the frequency. */
-                                  if (obj->FirstVolMaxLimHitCheck > 1.0f)
-                                     {  /* To prevent uncontrolled rise and overflow, limit 'FirstVolMaxLimHitCheck' to 2 which is higher than 1. So, it still satisfies above IF. */
-                                      obj->FirstVolMaxLimHitCheck = 2.0f;
-                                        /* Reset VolMin/Max and start-over again if freq change occurs. */
-                                      obj->VolMinAssigned = 0.0f;
-                                      obj->VolMaxAssigned = 0.0f;
-                                        /* InjVolMagn = InjVolMagnInit; */ /* Check this line, either use or not. */
-
-                                      obj->InjVolHalfPrdSampleNo = 2.0f*obj->InjVolHalfPrdSampleNo;
-//                                        InjVolAngleStep = _IQdiv2(InjVolAngleStep/2.0f);
-//                                        InjVolFreq = _IQdiv2(InjVolFreq);
-//                                        InputGainDFT = _IQdiv2(InputGainDFT);
-
-                                      obj->InjVolAngleStep = (obj->InjVolAngleStep/2.0f);
-                                      obj->InjVolFreq = (obj->InjVolFreq/2.0f);
-                                      obj->InputGainDFT = (obj->InputGainDFT/2.0f);
-
-                                        if (obj->InjVolHalfPrdSampleNo > obj->InjVolHalfPrdSampleNoMax)
-                                           {  obj->InjVolHalfPrdSampleNo = obj->InjVolHalfPrdSampleNoMax;
-                                              /* _IQdiv can be used for division of integers. */
-                                           obj-> InjVolAngleStep = ((1.0f)/ (2.0f*obj->InjVolHalfPrdSampleNo));
-                                           obj->InjVolFreq = (obj->InjVolAngleStep/ obj->AngIntgGain);
-                                           obj->InputGainDFT = (2.0f*obj->InjVolAngleStep);
-
-                                           obj->FirstFreqMinLimHitCheck++;
-                                              if (obj->FirstFreqMinLimHitCheck > 1.0f)
-                                                 {  /* To prevent uncontrolled rise and overflow, limit 'FirstFreqMinLimHitCheck' to 2 which is higher than 1. So, it still satisfies above IF. */
-                                                  obj->FirstFreqMinLimHitCheck = 2.0f;
-                                                  obj->VoltageFound = 1.0f;
-                                                  obj->VoltageNotFound = 1.0f;} /* DONT FORGET TO USE THIS ERROR MESSAGE. */
-                                           }
-                                      }
-                                }
-                          }
-                       else
-                          {  //InjVolMagn = _IQdiv2(MinSearchVol + MaxSearchVol);
-                           obj->InjVolMagn = (obj->MinSearchVol + obj->MaxSearchVol)/2.0f;}
-                   }
-
-                else if (obj->IsMagn > obj->IsMagnMaxLim)
-                   {  obj->MaxSearchVol = obj->InjVolMagn;
-                   obj->VolMaxAssigned = 1.0f;
-
-                      if (obj->VolMinAssigned == 0.0f)
-                         {  //InjVolMagn = _IQdiv2(InjVolMagn);
-                          obj->InjVolMagn = (obj->InjVolMagn)/2.0f;}
-                      else
-                         {  //InjVolMagn = _IQdiv2(MinSearchVol + MaxSearchVol);
-                          obj->InjVolMagn = (obj->MinSearchVol + obj->MaxSearchVol)/2.0f;}
-                   }
-                else
-                   {  obj->VoltageFound = 1.0f;}
-
-             }
-
-
-          /* 3- LD, LQ, THETA CALCULATION */
-          /* Search for Ld, Lq, and initial rotor position. Scan 180 electrical degrees in rotor with small angle steps. */
-          /* If Part-2 decides VoltageFound, then code directly enter here. No need to repeat the test. */
-          if (obj->VoltageFound == 1.0f)
-             {
-                /* Calculate inductance. */
-                //Lpu = _IQmpy(_IQdiv((VdMagnDFT), _IQmpy(InjVolFreq, IdMagnDFT)), _IQsinPU(VdPhaseDFT - IdPhaseDFT) );
-              obj->Lpu = (((obj->VdMagnDFT)/(obj->InjVolFreq* obj->IdMagnDFT))* sinf(obj->VdPhaseDFT - obj->IdPhaseDFT));
-              obj->Ind_Total[obj->i12]=obj->Lpu;
-              obj->Ang_Total[obj->i12]=obj->ElecTheta;
-              obj->i12++;
-              obj->FirstLdqEstCheck++;
-                if (obj->FirstLdqEstCheck == 1.0f)
-                   {  obj->LminApprox = obj->Lpu;
-                   obj->LmaxApprox = obj->Lpu;
-                   obj->InitialRotorAngle = obj->ElecTheta;}
-
-                /* To prevent uncontrolled rise and overflow, limit 'FirstLdqEstCheck' to 2 which is higher than 1. So, it still satisfies above IF-statement. */
-                if (obj->FirstLdqEstCheck > 1.0f)
-                   {  obj->FirstLdqEstCheck = 2.0f;}
-
-                if (obj->Lpu > obj->LmaxApprox)
-                   {  obj->LmaxApprox = obj->Lpu;}
-                if (obj->Lpu < obj->LminApprox)
-                   {  obj->LminApprox = obj->Lpu;
-                   obj->InitialRotorAngle = obj->ElecTheta;}
-
-                obj-> ElecThetaUnsat += obj->ElecThetaStep;
-
-//                ElecTheta = _IQsat(ElecThetaUnsat, _IQ(0.5), 0.0f);
-                obj->ElecTheta = MATH_sat(obj->ElecThetaUnsat, 0.5f, 0.0f);
-             }
-       }
+       else if (obj.EstStep == LdqEstStep_FINISH)
+          {  obj.CurrentSign = sgn_NEGATIVE;
+             if (obj.CtrlCycleCounter >= obj.dcCurHalfPrdSampleNo)
+                {  obj.CurrentSign = sgn_POSITIVE;}
+             if (obj.CtrlCycleCounter == (obj.dcCurHalfPrdSampleNo + (obj.dcCurHalfPrdSampleNo>>1)) )
+                {  obj.CtrlCycleCounter = 0.0f;
+                   obj.EstStep = LdqEstStep_OPERATING_POINT_CHANGE;}
+          }
+                                                                                                                                                                                                       \
+       /* Operating point change. */                                                                                                                                                                   \
+       if (obj.EstStep == LdqEstStep_OPERATING_POINT_CHANGE)                                                                                                                                             \
+          {                                                                                                                                                                                            \
+             if (obj.MotorType == MtrType_INDUCTION)                                                                                                                                                     \
+                {  obj.EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION;}                                                                                                                                \
+             else if ( (obj.MotorType == MtrType_IPMSM) || (obj.MotorType == MtrType_SYNRM) )                                                                                                              \
+                {  obj.EstStep = LdqEstStep_START;}                                                                                                                                                      \
+                                                                                                                                                                                                       \
+             /* STOP */                                                                                                                                                                                \
+             obj.OpPtNo++;                                                                                                                                                                               \
+             if (obj.OpPtNo > LDQ_TEST_NUMBER)                                                                                                                                                           \
+                {  if (obj.MotorType == MtrType_INDUCTION)                                                                                                                                               \
+                      {  obj.Finish = 1.0f;                                                                                                                                                              \
+                         obj.VariableInit = 1.0f;}                                                                                                                                                       \
+                   else if ( (obj.MotorType == MtrType_IPMSM) || (obj.MotorType == MtrType_SYNRM) )                                                                                                        \
+                      {  if (obj.Axis == D_AXIS)                                                                                                                                                         \
+                            {  obj.Axis = Q_AXIS;                                                                                                                                                        \
+                               obj.EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION;                                                                                                                     \
+                               obj.OpPtNo = 0.0f;}                                                                                                                                                          \
+                         else                                                                                                                                                                          \
+                            {  obj.Finish = 1.0f;                                                                                                                                                        \
+                               obj.VariableInit = 1.0;}                                                                                                                                                 \
+                       }                                                                                                                                                                               \
+                }                                                                                                                                                                                      \
+          }                                                                                                                                                                                            \
+                                                                                                                                                                                                       \
+                                                                                                                                                                                                       \
+       /* ASSIGN REFERENCE CURRENT FOR SMALL SIGNAL ANALYSIS AROUND AN OPERATING POINT. */                                                                                                             \
+       /* Compute the angle. Saturate the angle rate within (0, 1).  */                                                                                                                                \
+       if (obj.InjSineEnable == 1.0f)                                                                                                                                                                    \
+          {  obj.InjSampleCounter++;}                                                                                                                                                                    \
+       else                                                                                                                                                                                            \
+          {  obj.InjSampleCounter = 0.0f;}                                                                                                                                                                  \
+                                                                                                                                                                                                       \
+       obj.InjCurAngle = obj.InjSampleCounter * obj.InjCurAngleStep;                                                                                                                                           \
+       while (obj.InjCurAngle > 1.0f)                                                                                                                                                                \
+             {  obj.InjCurAngle -= 1.0f;}                                                                                                                                                            \
+       while (obj.InjCurAngle < 0.0f)                                                                                                                                                                \
+             {  obj.InjCurAngle += 1.0f;}                                                                                                                                                            \
+                                                                                                                                                                                                       \
+       /* Be careful with multiplication between 'CurrentSign' and 'OpPtNo'. Use type-casting (int16) for OpPtNo because CurrentSign is 'int16' and OpPtNo is 'Uint16'. */                             \
+       v.Iref = _IQmpy( (v.CurrentSign*(int16)v.OpPtNo), v.IrefDCStep) + _IQmpy( v.InjCurMagn, _IQsinPU(v.InjCurAngle) );                                                                              \
+       /* Increase ac amplitude the zero dc case */                                                                                                                                                    \
+       if (v.OpPtNo == 0) {  v.Iref = _IQmpy( (LDQ_TEST_NUMBER*_IQdiv2(v.IrefDCStep)), _IQsinPU(v.InjCurAngle));}
 
 
 
-    /* Compute the angle for injection sinusoidal voltage. */
-    /* In order to synthesize real cosine voltage appering at the motor, the injection angle starts from ' - _IQdiv2(InjVolAngleStep)'. */
-    obj->InjVolAngle = (obj->InjSampleCounter * obj->InjVolAngleStep);
-    /* Saturate the angle within (0, 1) because of '_IQcosPU'. */
-    while (obj->InjVolAngle > 1.0f)
-        {  obj->InjVolAngle -= 1.0f;}
-    while (obj->InjVolAngle < -1.0f)
-        {  obj->InjVolAngle += 1.0f;}
-    obj->InjSampleCounter++;
-
-    /* The addition of _IQdiv2(InjVolAngleStep) is to compensate the phase delay due to the ZOH effect of PWM. So, motor experiences 1.0f cosine voltage. */
-    /* Notice that both CMPA update from PWM shadow registers and SOCA/interrupt execution are initiated at TBCTR = PRD. This is important for phase difference between voltage and current. */
-//    InjVolAngle_ZOHComp = InjVolAngle + _IQdiv2(InjVolAngleStep);
-    obj->InjVolAngle_ZOHComp = obj->InjVolAngle + (obj->InjVolAngleStep/2.0f);
-    while (obj->InjVolAngle_ZOHComp > 1.0f)
-        {  obj->InjVolAngle_ZOHComp -= 1.0f;}
-    while (obj->InjVolAngle_ZOHComp < -1.0f)
-        {  obj->InjVolAngle_ZOHComp += 1.0f;}
-
-    /* Calculate injection voltage. Put this part after Goertzel IIR part because this voltage will be applied during next ctrl cycle. */
-    obj->InjVol = (obj->InjVolMagn* cosf(obj->InjVolAngle_ZOHComp*MATH_TWO_PI))*vdc_ref/sqrtf(3.0f);
 
 
-    /* Stop. */
-    if (obj->ElecThetaUnsat > obj->ElecTheta)
-       {  obj->Finish = 1.0f;
-          obj->VariableInit = 1.0f;}
-
-//    *pOutValue1 =obj->InjVol;
-//    *pOutValue2 =obj->ElecTheta;
-//    *pOutValue3 =obj->Finish;
-
-//
-//    // Saturate the output
-//#ifdef __TMS320C28XX_CLA__
-//    *pOutValue = MATH_sat(Up + Ui, outMax, outMin);
-//#else
-//    *pOutValue = MATH_sat(Up + Ui, outMax, outMin);
-//#endif  // __TMS320C28XX_CLA__
 
     return;
 } // end of PI_run_series() function

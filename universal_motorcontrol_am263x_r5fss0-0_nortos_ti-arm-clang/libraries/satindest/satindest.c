@@ -97,6 +97,6 @@ void SATINDEST_setParams(SATINDEST_Handle handle)
 //    obj->i12 = 0;
 
     return;
-} // end of ANGLE_COMP_setParams() function
+} // end of SATINDEST_setParams() function
 
 // end of the file
