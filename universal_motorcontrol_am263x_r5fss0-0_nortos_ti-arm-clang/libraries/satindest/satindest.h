@@ -186,8 +186,11 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t vdc_re
     /* DIRECT DISCRETE FOURIER TRANSFORM. */
        /* 'v.InputGainDFT' is to prevent overflow in the memories. */
        if (obj.InjSinePrdCounter == obj.InjSettleWait_PrdNo)
-          {  obj.SinDFT = _IQsinPU(v.InjCurAngle);
-             obj.CosDFT = _IQcosPU(v.InjCurAngle);
+          {  // obj.SinDFT = _IQsinPU(v.InjCurAngle);
+             // obj.CosDFT = _IQcosPU(v.InjCurAngle);
+
+             obj.SinDFT = sinf(obj.InjCurAngle * MATH_TWO_TYPE);
+             obj.CosDFT = cosf(obj.InjCurAngle * MATH_TWO_TYPE);
 
              obj.VrealDFT += (obj.Vref * obj.CosDFT * obj.InputGainDFT);
              obj.VimagDFT -= (obj.Vref * obj.SinDFT * obj.InputGainDFT);
@@ -214,10 +217,15 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t vdc_re
           {  obj.ExecuteEnable = 0.0f;
 
              /* SIGNAL AMPLITUDE & PHASE CALCULATION. */
-             v.VphaseDFT = _IQatan2PU(v.VimagDFT, v.VrealDFT) - _IQdiv2(v.InjCurAngleStep); /* Half-sample ZOH delay is taken into account. */
-             v.IphaseDFT = _IQatan2PU(v.IimagDFT, v.IrealDFT);
-             v.VmagnDFT = _IQsqrt( _IQmpy(v.VrealDFT, v.VrealDFT) + _IQmpy(v.VimagDFT, v.VimagDFT) );
-             v.ImagnDFT = _IQsqrt( _IQmpy(v.IrealDFT, v.IrealDFT) + _IQmpy(v.IimagDFT, v.IimagDFT) );
+            // v.VphaseDFT = _IQatan2PU(v.VimagDFT, v.VrealDFT) - _IQdiv2(v.InjCurAngleStep); /* Half-sample ZOH delay is taken into account. */
+            // v.IphaseDFT = _IQatan2PU(v.IimagDFT, v.IrealDFT);
+            // v.VmagnDFT = _IQsqrt( _IQmpy(v.VrealDFT, v.VrealDFT) + _IQmpy(v.VimagDFT, v.VimagDFT) );
+            // v.ImagnDFT = _IQsqrt( _IQmpy(v.IrealDFT, v.IrealDFT) + _IQmpy(v.IimagDFT, v.IimagDFT) );
+
+             obj.VphaseDFT = atan2f(obj.VimagDFT, obj.VrealDFT) - (obj.InjCurAngleStep / 2.0f); /* Half-sample ZOH delay is taken into account. */
+             obj.IphaseDFT = atan2f(obj.IimagDFT, obj.IrealDFT);
+             obj.VmagnDFT = sqrtf( (obj.VrealDFT * obj.VrealDFT) + (obj.VimagDFT * obj.VimagDFT));
+             obj.ImagnDFT = sqrtf( (obj.IrealDFT * obj.IrealDFT) + (obj.IimagDFT * obj.IimagDFT));
 
              /* Reset DFT variables for re-use in the next operating point. */
              obj.VrealDFT = 0.0f;
@@ -225,7 +233,7 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t vdc_re
              obj.IrealDFT = 0.0f;
              obj.IimagDFT = 0.0f;
 
-             v.Lest = _IQmpy(_IQdiv(v.VmagnDFT, _IQmpy(v.ImagnDFT, v.InjCurFreq)), _IQsinPU(v.VphaseDFT - v.IphaseDFT) );
+             obj.Lest = ((obj.VmagnDFT / (obj.ImagnDFT * obj.InjCurFreq)) * sinf(obj.VphaseDFT - obj.IphaseDFT) );
              if (obj.MotorType == MtrType_INDUCTION)
                 {  obj.Lsigma[obj.OpPtNo] = obj.Lest;}
              else if ( (obj.MotorType == MtrType_IPMSM) || (obj.MotorType == MtrType_SYNRM) )
