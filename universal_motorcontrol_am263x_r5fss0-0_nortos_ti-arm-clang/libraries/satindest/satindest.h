@@ -62,6 +62,20 @@ extern "C"
 #include <math.h>
 #include "math_types.h"
 
+#define LDQ_TEST_NUMBER (4)         // Parameter: Number. Inductance LUT size.
+
+#define LdqEstStep_START                          (1)
+#define LdqEstStep_NEGATIVE_CURRENT_ESTIMATION    (2)
+#define LdqEstStep_POSITIVE_CURRENT_ESTIMATION    (3)
+#define LdqEstStep_FINISH                         (4)
+#define LdqEstStep_OPERATING_POINT_CHANGE         (5)
+
+#define sgn_POSITIVE (+1)
+#define sgn_NEGATIVE (-1)
+
+#define D_AXIS (1)
+#define Q_AXIS (2)
+
 /*************************************************************************************************************************************************************************************/
 // Defines the SATINDEST object
 /*************************************************************************************************************************************************************************************/

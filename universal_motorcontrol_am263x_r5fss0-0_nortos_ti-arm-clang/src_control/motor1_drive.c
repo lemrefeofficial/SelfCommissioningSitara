@@ -89,6 +89,8 @@ __attribute__ ((section("foc_data"))) ANGLE_GEN_Obj    angleGen_M1;
 
 __attribute__ ((section("foc_data"))) SELFCOMMM_Obj    self_comm_step1_M1;
 
+__attribute__ ((section("foc_data"))) SATINDEST_Obj    satindest_step4_M1;
+
 #if(DMC_BUILDLEVEL == DMC_LEVEL_2)
 //!< the Vs per Freq object for open loop control
 __attribute__ ((section("foc_data"))) VS_FREQ_Obj    VsFreq_M1;
@@ -321,6 +323,9 @@ void initMotor1CtrlParameters(MOTOR_Handle handle)
     obj->enableSelf_comm1= TRUE;
     obj->enableSelf_comm2= FALSE;
 
+    obj->enableSatIndEst1= TRUE;
+    obj->enableSatIndEst1= FALSE;
+
     obj->IsSet_A = 0.0f;
 
     obj->alignTimeDelay = (uint16_t)(objUser->ctrlFreq_Hz * 2.0f);      // 2.0s
@@ -455,6 +460,9 @@ void initMotor1CtrlParameters(MOTOR_Handle handle)
 
     obj->self_comm_step1_H = SELFCOMMM_init(&self_comm_step1_M1, sizeof(self_comm_step1_M1));
     SELFCOMM_setParams(obj->self_comm_step1_H);
+
+    obj->satindest_step4_H = SATINDEST_init(&satindest_step4_M1, sizeof(satindest_step4_M1));
+    SATINDEST_setParams(obj->satindest_step4_H);
 
 #if(DMC_BUILDLEVEL <= DMC_LEVEL_3)
     obj->Idq_set_A.value[0] = 0.0f;
@@ -1179,6 +1187,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
     MOTOR_Vars_t *obj = (MOTOR_Vars_t *)motorHandle_M1;
     USER_Params *objUser = (USER_Params *)(obj->userParamsHandle);
     SELFCOMMM_Obj *obj_self = (SELFCOMMM_Obj *)(obj->self_comm_step1_H);
+    SATINDEST_Obj *obj_satindest = (SATINDEST_Obj *)(obj->satindest_step4_H);
 
     // acknowledge the ADC interrupt
     HAL_ackMtr1ADCInt();

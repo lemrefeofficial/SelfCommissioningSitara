@@ -78,6 +78,21 @@ void SATINDEST_setParams(SATINDEST_Handle handle)
 {
     SATINDEST_Obj *obj = (SATINDEST_Obj *)handle;
 
+      obj -> VariableInit = 1.0f;
+      obj -> MotorType;
+      obj -> Nbase = Fs/BASE_FREQ;
+      obj -> InjSettleWait_PrdNo = 1;
+      obj -> dcSettleWait_SampleNo = 20; // 2 ms
+      obj -> InjCurFreqInit = _IQ(5);
+      obj -> InjCurMagn = _IQ(0.05);
+      obj -> IrefDCStep = _IQ(0.1);
+
+      if (MotorType == MtrType_INDUCTION)
+             {  obj -> InjCurFreqInit = _IQ(0.4);
+                obj -> InjSettleWait_PrdNo = 50;
+             }
+
+
 
 //    obj->VariableInit = 1.0f;
 //    obj->InjVolHalfPrdSampleNoMax = 30.0f;

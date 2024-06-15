@@ -81,6 +81,7 @@ extern "C"
 #include "vs_freq.h"
 #include "angle_gen.h"
 #include "selfcommm.h"
+#include "satindest.h"
 #include "volt_recons.h"
 
 
@@ -784,6 +785,7 @@ typedef struct _MOTOR_Vars_t_
 #endif  // DMC_BUILDLEVEL <= DMC_LEVEL_3 || MOTOR1_ESMO || MOTOR1_VOLRECT
 
     SELFCOMMM_Handle self_comm_step1_H;
+    SATINDEST_Handle satindest_step4_H;
 
 //    float32_t oneOverDcBus_invV;    // The DC Bus inverse, 1/V
 
