@@ -324,7 +324,7 @@ void initMotor1CtrlParameters(MOTOR_Handle handle)
     obj->enableSelf_comm2= FALSE;
 
     obj->enableSatIndEst1= TRUE;
-    obj->enableSatIndEst1= FALSE;
+    obj->enableSatIndEst2= FALSE;
 
     obj->IsSet_A = 0.0f;
 
@@ -1907,6 +1907,42 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 //                     motorVars[MTR_1].Elec_theta_St1= 0.0f;
                    }
             }
+            else if( obj -> enableSatIndEst1 == TRUE)
+            {
+                if(obj -> enableSatIndEst2 == TRUE)
+                {
+                    // BURAYA AKTIF EDECEKLERIMI YAZACAGIM
+
+                    obj->enableSpeedCtrl = FALSE;
+                    obj->enableCurrentCtrl = TRUE;
+                     // aciya bakacagim.
+
+                    TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+                    ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+
+                }
+                else
+                {
+                    obj->enableSpeedCtrl = FALSE;
+                    obj->enableCurrentCtrl = FALSE;
+
+                    obj->IsRef_A = 0.0f;
+                    obj->Idq_out_A.value[0] = 0.0f;
+                    obj->Idq_out_A.value[1] = 0.0f;
+
+                    TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+                    ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+
+                    obj->Vdq_ffwd_V.value[0] = 0.0f;
+                    obj->Vdq_ffwd_V.value[1] = 0.0f;
+
+                    obj->Vdq_out_V.value[0] = 0.0f;
+                    obj->Vdq_out_V.value[1] = 0.0f;
+
+                }
+
+            }
+
             else
             {
             obj->stateRunTimeCnt = 0;
@@ -2223,6 +2259,51 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 
          }
      }
+
+    if (obj -> enableSatIndEst1 == TRUE)
+    {
+        if( obj -> enableSatIndEst2 == TRUE)
+        {
+            if (obj_satindest -> MotorType == (1)) // induction motor
+               {  obj->angleFOC_rad = (0.25f) * MATH_TWO_PI;}
+
+            // Provide inputs
+            if ( (Est_Ldq_DFT.MotorType == MtrType_INDUCTION) || ( ((Est_Ldq_DFT.MotorType == MtrType_IPMSM) || (Est_Ldq_DFT.MotorType == MtrType_SYNRM)) && (Est_Ldq_DFT.Axis == D_AXIS) ) )
+            {
+               Est_Ldq_DFT.Ifbk = Fbks.Id;
+               Est_Ldq_DFT.Vref = Fbks.VdSW;
+            }
+
+            if ( ((Est_Ldq_DFT.MotorType == MtrType_IPMSM) || (Est_Ldq_DFT.MotorType == MtrType_SYNRM)) && (Est_Ldq_DFT.Axis == Q_AXIS) )
+            {
+               Est_Ldq_DFT.Ifbk = Fbks.Iq;
+               Est_Ldq_DFT.Vref = Fbks.VqSW;
+            }
+
+            // IDENTIFICATION_LDQ_DFT_MACRO(Est_Ldq_DFT)
+            // SELFCOMMM_run(obj -> self_comm_step1_H, obj->adcData.VdcBus_V , obj->Idq_in_A.value[0], obj->Idq_in_A.value[1]);
+               SATINDEST_run(obj -> satindest_step4_H, const float32_t id_fb, const float32_t iq_fb, obj->Idq_in_A.value[0], obj->Idq_in_A.value[1])
+
+            // Assign outputs
+            if ( (Est_Ldq_DFT.MotorType == MtrType_INDUCTION) || ( ((Est_Ldq_DFT.MotorType == MtrType_IPMSM) || (Est_Ldq_DFT.MotorType == MtrType_SYNRM)) && (Est_Ldq_DFT.Axis == D_AXIS) ) )
+            {  Refs.Id = Est_Ldq_DFT.Iref;
+               Refs.Iq = _IQ(0.0);}
+            if ( ((Est_Ldq_DFT.MotorType == MtrType_IPMSM) || (Est_Ldq_DFT.MotorType == MtrType_SYNRM)) && (Est_Ldq_DFT.Axis == Q_AXIS) )
+            {  Refs.Id = _IQ(0.0);
+               Refs.Iq = Est_Ldq_DFT.Iref;}
+
+
+             // Finish
+             if (Est_Ldq_DFT.Finish == TRUE)
+             {  Est_Ldq_DFT.Finish = FALSE;
+
+                lsw = lsw_IDLE; // erase later
+
+              }
+
+        }
+
+    }
 
 
 //---------- Common Speed and Current Loop for all observers -------------------

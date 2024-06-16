@@ -62,6 +62,8 @@ extern "C"
 #include <math.h>
 #include "math_types.h"
 
+
+
 #define LDQ_TEST_NUMBER (4)         // Parameter: Number. Inductance LUT size.
 
 #define LdqEstStep_START                          (1)
@@ -147,7 +149,7 @@ extern void SATINDEST_setParams(SATINDEST_Handle handle);
 
 // fonksiyonun inputlarini girmeyi unutma
 
-static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t vdc_ref, const float32_t id_fb, const float32_t iq_fb)
+static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t Vd_fb, const float32_t Vq_fb, const float32_t id_fb, const float32_t iq_fb)
 {
 
     SATINDEST_Obj *obj = (SATINDEST_Obj *)handle;

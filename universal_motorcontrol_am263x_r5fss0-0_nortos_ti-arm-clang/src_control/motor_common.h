@@ -503,6 +503,9 @@ typedef struct _MOTOR_Vars_t_
     Bool enableSelf_comm1;
     Bool enableSelf_comm2;
 
+    Bool enableSatIndEst1;
+    Bool enableSatIndEst2;
+
 #if defined(MOTOR1_FILTERIS)
     bool flagEnableFilterIs;
 #endif  // MOTOR1_FILTERIS
