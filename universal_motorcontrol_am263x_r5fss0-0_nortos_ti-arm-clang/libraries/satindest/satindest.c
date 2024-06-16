@@ -87,6 +87,11 @@ void SATINDEST_setParams(SATINDEST_Handle handle)
       obj -> InjCurMagn = _IQ(0.05);
       obj -> IrefDCStep = _IQ(0.1);
 
+      obj->Vdc_Base = 409.0f;
+      obj->Vph_Base = 236.1f;
+      obj->I_Base = 10.0f;
+      obj->F_Base = 100.0f;
+
       if (MotorType == MtrType_INDUCTION)
              {  obj -> InjCurFreqInit = _IQ(0.4);
                 obj -> InjSettleWait_PrdNo = 50;
