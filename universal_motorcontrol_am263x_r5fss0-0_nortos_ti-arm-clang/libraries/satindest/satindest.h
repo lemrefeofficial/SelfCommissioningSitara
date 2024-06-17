@@ -91,7 +91,7 @@ typedef struct _SATINDEST_Obj_
 
     float32_t VariableInit;                 // Data: TRUE/FALSE. Estimation variables initialization enable.
     float32_t ExecuteEnable;                // Data: TRUE/FALSE. Parameter calculations are enabled.
-    uint16_t InjSineEnable;                   // Data: TRUE/FALSE. Sinuoidal current injection is enabled.
+    float32_t InjSineEnable;                   // Data: TRUE/FALSE. Sinuoidal current injection is enabled.
     int16_t CurrentSign;                    // Data: Number. Positive=(+1), Negative=(-1).
     uint16_t Axis;                          // Data: Number. D_AXIS=1, Q_AXIS=2.
     uint16_t OpPtNo;                        // Data: Number. Magnetic operating point number.
@@ -141,6 +141,9 @@ typedef struct _SATINDEST_Obj_
     float32_t F_Base;
 
 
+    float32_t test1;
+
+
 } SATINDEST_Obj;
 
 /*****************************************************************************/
@@ -172,7 +175,7 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t Vd_fb,
     if (obj -> VariableInit == 1.0f)
            {  obj -> VariableInit = 0.0f;
               obj -> ExecuteEnable = 0.0f;
-              obj -> InjSineEnable = 0;
+              obj -> InjSineEnable = 0.0f;
               obj -> OpPtNo = 0;
               obj -> Axis = D_AXIS; /* Initialize. */
               obj -> EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION; /* To shorthen the test. As Idc is zero at the beginning (OpPtNo is initialized to zero), no need for neg current.*/
@@ -182,7 +185,7 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t Vd_fb,
               obj -> InjSinePrdCounter = 0;
 
 
-              obj -> InjCurHalfPrdSampleNo = (obj -> Nbase * (1 / obj -> InjCurFreqInit)) / (2); /* Here, '_IQdiv' won't overflow because InjCurFreq > 1 p.u. mostly. */
+              obj -> InjCurHalfPrdSampleNo = (obj -> Nbase) * ((1.0f / obj -> InjCurFreqInit) / (2.0f)); /* Here, '_IQdiv' won't overflow because InjCurFreq > 1 p.u. mostly. */
 
               if ( (((obj -> Nbase * (1.0f / obj -> InjCurFreqInit)) / 2.0f)  - obj -> InjCurHalfPrdSampleNo) >= 0.5f ) /* Round the float variable into integer. Useful only in FLOAT_MATH */
               {  obj -> InjCurHalfPrdSampleNo++;}
@@ -219,7 +222,7 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t Vd_fb,
             if ( ((obj -> MotorType == MtrType_IPMSM) || (obj -> MotorType == MtrType_SYNRM)) && (obj -> Axis == Q_AXIS) )
             {
                 obj -> Ifbk = iq_fb / obj -> I_Base; ;
-                obj -> Ifbk = Vq_fb / obj -> Vph_Base ;
+                obj -> Vref = Vq_fb / obj -> Vph_Base ;
              }
 
     /* DIRECT DISCRETE FOURIER TRANSFORM. */
@@ -280,7 +283,8 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t Vd_fb,
                 { if (obj -> Axis == D_AXIS)
                      {  obj -> Ld[LDQ_TEST_NUMBER + obj -> CurrentSign*(int16_t)obj -> OpPtNo] = obj -> Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
                   else
-                     {  obj -> Lq[LDQ_TEST_NUMBER + obj -> CurrentSign*(int16_t)obj -> OpPtNo] = obj -> Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
+                     { obj -> test1 = 25.0f;
+                       obj -> Lq[LDQ_TEST_NUMBER + obj -> CurrentSign*(int16_t)obj -> OpPtNo] = obj -> Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
                 }
           }
 
@@ -296,20 +300,20 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t Vd_fb,
        else if (obj -> EstStep == LdqEstStep_NEGATIVE_CURRENT_ESTIMATION)
           {  obj -> CurrentSign = sgn_NEGATIVE;
              if (obj -> CtrlCycleCounter >= obj -> dcSettleWait_SampleNo)
-                {  obj -> InjSineEnable = 1;}
+                {  obj -> InjSineEnable = 1.0f;}
              if (obj -> CtrlCycleCounter == obj -> dcCurHalfPrdSampleNo)
                 {  obj -> CtrlCycleCounter = 0;
-                   obj ->InjSineEnable = 1;
+                   obj ->InjSineEnable = 1.0f;
                    obj ->EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION;}
           }
 
        else if (obj -> EstStep == LdqEstStep_POSITIVE_CURRENT_ESTIMATION)
           {  obj -> CurrentSign = sgn_POSITIVE;
              if (obj -> CtrlCycleCounter >= obj -> dcSettleWait_SampleNo)
-                {  obj -> InjSineEnable = 1;}
+                {  obj -> InjSineEnable = 1.0f;}
              if (obj -> CtrlCycleCounter == obj -> dcCurHalfPrdSampleNo)
                 {  obj -> CtrlCycleCounter = 0;
-                   obj -> InjSineEnable = 0;
+                   obj -> InjSineEnable = 0.0f;
                    if (obj -> MotorType == MtrType_INDUCTION)
                       {  obj -> EstStep = LdqEstStep_OPERATING_POINT_CHANGE;}
                    else if ( (obj -> MotorType == MtrType_IPMSM) || (obj -> MotorType == MtrType_SYNRM) )
@@ -355,7 +359,7 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t Vd_fb,
 
        /* ASSIGN REFERENCE CURRENT FOR SMALL SIGNAL ANALYSIS AROUND AN OPERATING POINT. */
        /* Compute the angle. Saturate the angle rate within (0, 1).  */
-       if (obj -> InjSineEnable == 1)
+       if (obj -> InjSineEnable == 1.0f)
           {  obj -> InjSampleCounter++;}
        else
           {  obj -> InjSampleCounter = 0;}

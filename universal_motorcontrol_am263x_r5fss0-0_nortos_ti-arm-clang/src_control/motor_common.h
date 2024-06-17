@@ -621,6 +621,8 @@ typedef struct _MOTOR_Vars_t_
     float32_t maxCurrent_A;
     float32_t brakingCurrent_A;
 
+    float32_t random_v;
+
     float32_t torque_Nm;
 
     MATH_Vec2 Vab_out_V;             // the output control voltage on alpha&beta axis

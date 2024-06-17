@@ -1195,6 +1195,10 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
     // read the ADC data with offsets
     HAL_readMtr1ADCData(&obj->adcData);
 
+    //obj->adcData.VdcBus_V =  100.0f;
+
+
+
 #if defined(BSXL8316RT_REVA) && defined(OFFSET_CORRECTION)
     // CSA Offset correction
     I_correct_A.value[0] = 0.995832f * obj->adcData.I_A.value[0] -
@@ -1775,26 +1779,26 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
     }
     else if(obj->motorState == MOTOR_ALIGNMENT)
     {
-//        obj->angleFOC_rad = 0.0f;
-//        obj->enableSpeedCtrl = FALSE;
-//
-//        obj->IsRef_A = 0.0f;
-//        obj->Idq_out_A.value[0] = obj->alignCurrent_A;
-//        obj->Idq_out_A.value[1] = 0.0f;
-//
-//        TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
-//        ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
-
+        obj->angleFOC_rad = 0.0f;
         obj->enableSpeedCtrl = FALSE;
-        obj-> angleFOC_rad  = 0.0f;
 
+        obj->IsRef_A = 0.0f;
+        obj->Idq_out_A.value[0] = obj->alignCurrent_A;
+        obj->Idq_out_A.value[1] = 0.0f;
 
-                                                 obj->IsRef_A = 0.0f;
-                                                 obj->Idq_out_A.value[0] = 0.0f;
-                                                 obj->Idq_out_A.value[1] = 0.0f;
+        TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+        ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
 
-                                                 TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
-                                                 ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+//        obj->enableSpeedCtrl = FALSE;
+//        obj-> angleFOC_rad  = 0.0f;
+//
+//
+//                                                 obj->IsRef_A = 0.0f;
+//                                                 obj->Idq_out_A.value[0] = 0.0f;
+//                                                 obj->Idq_out_A.value[1] = 0.0f;
+//
+//                                                 TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+//                                                 ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
 
                             //                     PI_setUi(piHandle_Id[MTR_1],0.0f);
                             //                     PI_setRefValue(piHandle_Id[MTR_1], 0.0f);
@@ -1915,7 +1919,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 
                     obj->enableSpeedCtrl = FALSE;
                     obj->enableCurrentCtrl = TRUE;
-                    obj-> angleFOC_rad  = obj-> angleFOC_rad;
+                    obj-> angleFOC_rad  = 0.0f;
 
 
                   TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
@@ -2286,21 +2290,23 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 
             // IDENTIFICATION_LDQ_DFT_MACRO(Est_Ldq_DFT)
             // SELFCOMMM_run(obj -> self_comm_step1_H, obj->adcData.VdcBus_V , obj->Idq_in_A.value[0], obj->Idq_in_A.value[1]);
+
+            obj ->  random_v = obj -> Vdq_out_V.value[1];
                SATINDEST_run(obj -> satindest_step4_H, obj -> Vdq_out_V.value[0], obj -> Vdq_out_V.value[1], obj -> Idq_in_A.value[0], obj -> Idq_in_A.value[1]);
 
             // Assign outputs
             if ( (obj_satindest -> MotorType == MtrType_INDUCTION) || ( ((obj_satindest -> MotorType == MtrType_IPMSM) || (obj_satindest -> MotorType == MtrType_SYNRM)) && (obj_satindest -> Axis == D_AXIS) ) )
             {
                 // Refs.Id = Est_Ldq_DFT.Iref;
-                obj -> IdqRef_A.value[0] = obj_satindest -> Iref * 10.f;
+                obj -> IdqRef_A.value[0] = obj_satindest -> Iref * 10.0f;
 
                 //Refs.Iq = _IQ(0.0);}
-                obj -> IdqRef_A.value[1] = 0.0f * 10.f;}
+                obj -> IdqRef_A.value[1] = 0.0f * 10.0f;}
 
             if ( ((obj_satindest -> MotorType == MtrType_IPMSM) || (obj_satindest -> MotorType == MtrType_SYNRM)) && (obj_satindest -> Axis == Q_AXIS) )
-            {  obj -> IdqRef_A.value[0] = 0.0f * 10.f;
+            {  obj -> IdqRef_A.value[0] = 0.0f * 10.0f;
 
-               obj -> IdqRef_A.value[1] = obj_satindest -> Iref * 10.f;
+               obj -> IdqRef_A.value[1] = obj_satindest -> Iref * 10.0f;
 
             }
 
@@ -2309,7 +2315,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
              if (obj_satindest -> Finish == 1.0f)
              {  // obj_satindest -> Finish = FALSE;
 
-                 obj -> enableSatIndEst2 == FALSE;
+                 obj -> enableSatIndEst2 = FALSE;
                  obj -> enableSpeedCtrl = FALSE;
                  obj -> enableCurrentCtrl = FALSE;
 
