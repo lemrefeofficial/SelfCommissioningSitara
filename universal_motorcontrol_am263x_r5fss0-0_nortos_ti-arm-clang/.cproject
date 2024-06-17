@@ -44,6 +44,7 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.ENABLE_DISABLE_FUNCTION_INLINING.367066053" name="Enable/Disable function inlining" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.ENABLE_DISABLE_FUNCTION_INLINING" value="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.ENABLE_DISABLE_FUNCTION_INLINING.FINLINE_FUNCTIONS" valueType="enumerated"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.INCLUDE_PATH.1468130379" name="Add dir to #include search path (-I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="${SYSCONFIG_TOOL_INCLUDE_PATH}"/>
+									<listOptionValue builtIn="false" value="C:\Users\LEE230001\Desktop\Step4\SelfCommissioningSitara\universal_motorcontrol_am263x_r5fss0-0_nortos_ti-arm-clang\libraries\satindest"/>
 									<listOptionValue builtIn="false" value="C:\Users\LEE230001\Desktop\TI_Projects\universal_motorcontrol_am263x_r5fss0-0_nortos_ti-arm-clang\libraries\Self_comm"/>
 									<listOptionValue builtIn="false" value="${PROJECT_ROOT}/libraries/math"/>
 									<listOptionValue builtIn="false" value="${PROJECT_ROOT}/libraries/dcl"/>

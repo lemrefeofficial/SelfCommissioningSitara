@@ -320,7 +320,7 @@ void initMotor1CtrlParameters(MOTOR_Handle handle)
     obj->flagEnableSpeedCtrl = TRUE;
     obj->flagEnableCurrentCtrl = TRUE;
 
-    obj->enableSelf_comm1= TRUE;
+    obj->enableSelf_comm1= FALSE;
     obj->enableSelf_comm2= FALSE;
 
     obj->enableSatIndEst1= TRUE;
@@ -1786,7 +1786,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 //        ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
 
         obj->enableSpeedCtrl = FALSE;
-                                                obj->   = FALSE;
+        obj-> angleFOC_rad  = 0.0f;
 
 
                                                  obj->IsRef_A = 0.0f;
@@ -1799,8 +1799,8 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
                             //                     PI_setUi(piHandle_Id[MTR_1],0.0f);
                             //                     PI_setRefValue(piHandle_Id[MTR_1], 0.0f);
                             //                     PI_setFbackValue(piHandle_Id[MTR_1], 0.0f);
-                                                 obj->Vdq_ffwd_V.value[0] = 0.0f;
-                                                 obj->Vdq_ffwd_V.value[1] = 0.0f;
+                              //                   obj->Vdq_ffwd_V.value[0] = 0.0f;
+                                //                 obj->Vdq_ffwd_V.value[1] = 0.0f;
 
 
                             //                     PI_setUi(piHandle_Iq[MTR_1],0.0f);
@@ -1808,8 +1808,8 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
                             //                     PI_setFbackValue(piHandle_Iq[MTR_1], 0.0f);
 
 
-                                                 obj->Vdq_out_V.value[0] = 0.0f;
-                                                 obj->Vdq_out_V.value[1] = 0.0f;
+                                  //               obj->Vdq_out_V.value[0] = 0.0f;
+                                    //             obj->Vdq_out_V.value[1] = 0.0f;
 
         if((obj->stateRunTimeCnt > obj->alignTimeDelay) ||
                  (obj->flagEnableAlignment == FALSE))
@@ -1915,16 +1915,18 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 
                     obj->enableSpeedCtrl = FALSE;
                     obj->enableCurrentCtrl = TRUE;
-                     // aciya bakacagim.
+                    obj-> angleFOC_rad  = obj-> angleFOC_rad;
 
-                    TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
-                    ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+
+                  TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+                  ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
 
                 }
                 else
                 {
                     obj->enableSpeedCtrl = FALSE;
                     obj->enableCurrentCtrl = FALSE;
+                    obj-> angleFOC_rad  = 0.0f;
 
                     obj->IsRef_A = 0.0f;
                     obj->Idq_out_A.value[0] = 0.0f;
@@ -2290,24 +2292,22 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
             if ( (obj_satindest -> MotorType == MtrType_INDUCTION) || ( ((obj_satindest -> MotorType == MtrType_IPMSM) || (obj_satindest -> MotorType == MtrType_SYNRM)) && (obj_satindest -> Axis == D_AXIS) ) )
             {
                 // Refs.Id = Est_Ldq_DFT.Iref;
-                obj -> IdqRef_A.value[0] = obj_satindest -> Iref;
+                obj -> IdqRef_A.value[0] = obj_satindest -> Iref * 10.f;
 
                 //Refs.Iq = _IQ(0.0);}
-                obj -> IdqRef_A.value[1] = 0.0f;}
+                obj -> IdqRef_A.value[1] = 0.0f * 10.f;}
 
             if ( ((obj_satindest -> MotorType == MtrType_IPMSM) || (obj_satindest -> MotorType == MtrType_SYNRM)) && (obj_satindest -> Axis == Q_AXIS) )
-            {  obj -> IdqRef_A.value[0] = 0.0f;
+            {  obj -> IdqRef_A.value[0] = 0.0f * 10.f;
 
-
-               obj -> IdqRef_A.value[1] = obj_satindest -> Iref;
-
+               obj -> IdqRef_A.value[1] = obj_satindest -> Iref * 10.f;
 
             }
 
 
              // Finish
              if (obj_satindest -> Finish == 1.0f)
-             {   obj_satindest -> Finish = FALSE;
+             {  // obj_satindest -> Finish = FALSE;
 
                  obj -> enableSatIndEst2 == FALSE;
                  obj -> enableSpeedCtrl = FALSE;

@@ -79,6 +79,10 @@ extern "C"
 #define D_AXIS (1)
 #define Q_AXIS (2)
 
+#define MtrType_INDUCTION               (1)
+#define MtrType_IPMSM                   (2)
+#define MtrType_SYNRM                   (3)
+
 /*************************************************************************************************************************************************************************************/
 // Defines the SATINDEST object
 /*************************************************************************************************************************************************************************************/
@@ -220,36 +224,37 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t Vd_fb,
 
     /* DIRECT DISCRETE FOURIER TRANSFORM. */
        /* 'v.InputGainDFT' is to prevent overflow in the memories. */
-       if (obj.InjSinePrdCounter == obj.InjSettleWait_PrdNo)
+       if (obj -> InjSinePrdCounter == obj -> InjSettleWait_PrdNo)
           {  // obj.SinDFT = _IQsinPU(v.InjCurAngle);
              // obj.CosDFT = _IQcosPU(v.InjCurAngle);
 
-             obj.SinDFT = sinf(obj.InjCurAngle * MATH_TWO_TYPE);
-             obj.CosDFT = cosf(obj.InjCurAngle * MATH_TWO_TYPE);
+           obj -> SinDFT = sinf(obj -> InjCurAngle * MATH_TWO_PI);
+           obj -> CosDFT = cosf(obj -> InjCurAngle * MATH_TWO_PI);
 
-             obj.VrealDFT += (obj.Vref * obj.CosDFT * obj.InputGainDFT);
-             obj.VimagDFT -= (obj.Vref * obj.SinDFT * obj.InputGainDFT);
-             obj.IrealDFT += (obj.Ifbk * obj.CosDFT * obj.InputGainDFT);
-             obj.IimagDFT -= (obj.Ifbk * obj.SinDFT * obj.InputGainDFT);
+           obj -> VrealDFT += (obj -> Vref * obj -> CosDFT * obj -> InputGainDFT);
+           obj -> VimagDFT -= (obj -> Vref * obj -> SinDFT * obj -> InputGainDFT);
+           obj -> IrealDFT += (obj -> Ifbk * obj -> CosDFT * obj -> InputGainDFT);
+           obj -> IimagDFT -= (obj -> Ifbk * obj -> SinDFT * obj -> InputGainDFT);
 
           }
 
 
        /* INJECTION PERIOD HANDLER: Enables signal detection by DFT and inductance calculation. */
        /* In this ctrl cycle, the last sample of the injected current period  is being applied. */
-       if ( obj.InjSampleCounter == (2 * obj.InjCurHalfPrdSampleNo) )
-          {  obj.InjSampleCounter = 0;
-             obj.InjSinePrdCounter++;
+       if ( obj -> InjSampleCounter == (2 * obj -> InjCurHalfPrdSampleNo) )
+          {
+           obj -> InjSampleCounter = 0;
+           obj -> InjSinePrdCounter++;
              /* Just after the injection period for DFT finishes, enable execution. */
-             if (obj.InjSinePrdCounter == (obj.InjSettleWait_PrdNo + 1))
-                {  obj.InjSinePrdCounter = 0;
-                   obj.ExecuteEnable = 1.0f;}
+             if (obj -> InjSinePrdCounter == (obj -> InjSettleWait_PrdNo + 1))
+                {  obj -> InjSinePrdCounter = 0;
+                   obj -> ExecuteEnable = 1.0f;}
           }
 
 
        /* PARAMETER CALCULATIONS */
-       if (obj.ExecuteEnable == 1.0f)
-          {  obj.ExecuteEnable = 0.0f;
+       if (obj -> ExecuteEnable == 1.0f)
+          {  obj -> ExecuteEnable = 0.0f;
 
              /* SIGNAL AMPLITUDE & PHASE CALCULATION. */
             // v.VphaseDFT = _IQatan2PU(v.VimagDFT, v.VrealDFT) - _IQdiv2(v.InjCurAngleStep); /* Half-sample ZOH delay is taken into account. */
@@ -257,114 +262,114 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t Vd_fb,
             // v.VmagnDFT = _IQsqrt( _IQmpy(v.VrealDFT, v.VrealDFT) + _IQmpy(v.VimagDFT, v.VimagDFT) );
             // v.ImagnDFT = _IQsqrt( _IQmpy(v.IrealDFT, v.IrealDFT) + _IQmpy(v.IimagDFT, v.IimagDFT) );
 
-             obj.VphaseDFT = atan2f(obj.VimagDFT, obj.VrealDFT) - (obj.InjCurAngleStep / 2.0f); /* Half-sample ZOH delay is taken into account. */
-             obj.IphaseDFT = atan2f(obj.IimagDFT, obj.IrealDFT);
-             obj.VmagnDFT = sqrtf( (obj.VrealDFT * obj.VrealDFT) + (obj.VimagDFT * obj.VimagDFT));
-             obj.ImagnDFT = sqrtf( (obj.IrealDFT * obj.IrealDFT) + (obj.IimagDFT * obj.IimagDFT));
+          obj -> VphaseDFT = atan2f(obj -> VimagDFT, obj -> VrealDFT) - (obj -> InjCurAngleStep / 2.0f); /* Half-sample ZOH delay is taken into account. */
+          obj -> IphaseDFT = atan2f(obj -> IimagDFT, obj -> IrealDFT);
+          obj -> VmagnDFT = sqrtf( (obj -> VrealDFT * obj -> VrealDFT) + (obj -> VimagDFT * obj -> VimagDFT));
+          obj -> ImagnDFT = sqrtf( (obj -> IrealDFT * obj -> IrealDFT) + (obj -> IimagDFT * obj -> IimagDFT));
 
              /* Reset DFT variables for re-use in the next operating point. */
-             obj.VrealDFT = 0.0f;
-             obj.VimagDFT = 0.0f;
-             obj.IrealDFT = 0.0f;
-             obj.IimagDFT = 0.0f;
+          obj -> VrealDFT = 0.0f;
+          obj -> VimagDFT = 0.0f;
+          obj -> IrealDFT = 0.0f;
+          obj -> IimagDFT = 0.0f;
 
-             obj.Lest = ((obj.VmagnDFT / (obj.ImagnDFT * obj.InjCurFreq)) * sinf(obj.VphaseDFT - obj.IphaseDFT) );
-             if (obj.MotorType == MtrType_INDUCTION)
-                {  obj.Lsigma[obj.OpPtNo] = obj.Lest;}
-             else if ( (obj.MotorType == MtrType_IPMSM) || (obj.MotorType == MtrType_SYNRM) )
-                { if (obj.Axis == D_AXIS)
-                     {  obj.Ld[LDQ_TEST_NUMBER + obj.CurrentSign*(int16)v.OpPtNo] = obj.Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
+          obj -> Lest = ((obj -> VmagnDFT / (obj -> ImagnDFT * obj -> InjCurFreq)) * sinf(obj -> VphaseDFT - obj -> IphaseDFT) );
+             if (obj -> MotorType == MtrType_INDUCTION)
+                {  obj -> Lsigma[obj -> OpPtNo] = obj -> Lest;}
+             else if ( (obj -> MotorType == MtrType_IPMSM) || (obj -> MotorType == MtrType_SYNRM) )
+                { if (obj -> Axis == D_AXIS)
+                     {  obj -> Ld[LDQ_TEST_NUMBER + obj -> CurrentSign*(int16_t)obj -> OpPtNo] = obj -> Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
                   else
-                     {  obj.Lq[LDQ_TEST_NUMBER + obj.CurrentSign*(int16)obj.OpPtNo] = obj.Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
+                     {  obj -> Lq[LDQ_TEST_NUMBER + obj -> CurrentSign*(int16_t)obj -> OpPtNo] = obj -> Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
                 }
           }
 
        /* ESTIMATION STEPS */
-       obj.CtrlCycleCounter++;
-       if (obj.EstStep == LdqEstStep_START)
-          {  obj.CurrentSign = sgn_POSITIVE;
-             if (obj.CtrlCycleCounter == (obj.dcCurHalfPrdSampleNo>>1) )
-                {  obj.CtrlCycleCounter = 0;
-                   obj.EstStep = LdqEstStep_NEGATIVE_CURRENT_ESTIMATION;}
+       obj -> CtrlCycleCounter++;
+       if (obj -> EstStep == LdqEstStep_START)
+          {  obj ->CurrentSign = sgn_POSITIVE;
+             if (obj -> CtrlCycleCounter == (obj -> dcCurHalfPrdSampleNo>>1) )
+                {  obj -> CtrlCycleCounter = 0;
+                   obj -> EstStep = LdqEstStep_NEGATIVE_CURRENT_ESTIMATION;}
           }
 
-       else if (obj.EstStep == LdqEstStep_NEGATIVE_CURRENT_ESTIMATION)
-          {  obj.CurrentSign = sgn_NEGATIVE;
-             if (obj.CtrlCycleCounter >= obj.dcSettleWait_SampleNo)
-                {  obj.InjSineEnable = 1;}
-             if (obj.CtrlCycleCounter == obj.dcCurHalfPrdSampleNo)
-                {  obj.CtrlCycleCounter = 0;
-                   obj.InjSineEnable = 1;
-                   obj.EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION;}
+       else if (obj -> EstStep == LdqEstStep_NEGATIVE_CURRENT_ESTIMATION)
+          {  obj -> CurrentSign = sgn_NEGATIVE;
+             if (obj -> CtrlCycleCounter >= obj -> dcSettleWait_SampleNo)
+                {  obj -> InjSineEnable = 1;}
+             if (obj -> CtrlCycleCounter == obj -> dcCurHalfPrdSampleNo)
+                {  obj -> CtrlCycleCounter = 0;
+                   obj ->InjSineEnable = 1;
+                   obj ->EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION;}
           }
 
-       else if (obj.EstStep == LdqEstStep_POSITIVE_CURRENT_ESTIMATION)
-          {  obj.CurrentSign = sgn_POSITIVE;
-             if (obj.CtrlCycleCounter >= obj.dcSettleWait_SampleNo)
-                {  obj.InjSineEnable = 1;}
-             if (obj.CtrlCycleCounter == obj.dcCurHalfPrdSampleNo)
-                {  obj.CtrlCycleCounter = 0;
-                   obj.InjSineEnable = 0;
-                   if (obj.MotorType == MtrType_INDUCTION)
-                      {  obj.EstStep = LdqEstStep_OPERATING_POINT_CHANGE;}
-                   else if ( (obj.MotorType == MtrType_IPMSM) || (obj.MotorType == MtrType_SYNRM) )
-                      {  obj.EstStep = LdqEstStep_FINISH;}
+       else if (obj -> EstStep == LdqEstStep_POSITIVE_CURRENT_ESTIMATION)
+          {  obj -> CurrentSign = sgn_POSITIVE;
+             if (obj -> CtrlCycleCounter >= obj -> dcSettleWait_SampleNo)
+                {  obj -> InjSineEnable = 1;}
+             if (obj -> CtrlCycleCounter == obj -> dcCurHalfPrdSampleNo)
+                {  obj -> CtrlCycleCounter = 0;
+                   obj -> InjSineEnable = 0;
+                   if (obj -> MotorType == MtrType_INDUCTION)
+                      {  obj -> EstStep = LdqEstStep_OPERATING_POINT_CHANGE;}
+                   else if ( (obj -> MotorType == MtrType_IPMSM) || (obj -> MotorType == MtrType_SYNRM) )
+                      {  obj -> EstStep = LdqEstStep_FINISH;}
                 }
           }
 
-       else if (obj.EstStep == LdqEstStep_FINISH)
-          {  obj.CurrentSign = sgn_NEGATIVE;
-             if (obj.CtrlCycleCounter >= obj.dcCurHalfPrdSampleNo)
-                {  obj.CurrentSign = sgn_POSITIVE;}
-             if (obj.CtrlCycleCounter == (obj.dcCurHalfPrdSampleNo + (obj.dcCurHalfPrdSampleNo>>1)) )
-                {  obj.CtrlCycleCounter = 0;
-                   obj.EstStep = LdqEstStep_OPERATING_POINT_CHANGE;}
+       else if (obj -> EstStep == LdqEstStep_FINISH)
+          {  obj -> CurrentSign = sgn_NEGATIVE;
+             if (obj -> CtrlCycleCounter >= obj -> dcCurHalfPrdSampleNo)
+                {  obj -> CurrentSign = sgn_POSITIVE;}
+             if (obj -> CtrlCycleCounter == (obj -> dcCurHalfPrdSampleNo + (obj -> dcCurHalfPrdSampleNo>>1)) )
+                {  obj -> CtrlCycleCounter = 0;
+                   obj -> EstStep = LdqEstStep_OPERATING_POINT_CHANGE;}
           }
-                                                                                                                                                                                                       \
-       /* Operating point change. */                                                                                                                                                                   \
-       if (obj.EstStep == LdqEstStep_OPERATING_POINT_CHANGE)                                                                                                                                             \
-          {                                                                                                                                                                                            \
-             if (obj.MotorType == MtrType_INDUCTION)                                                                                                                                                     \
-                {  obj.EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION;}                                                                                                                                \
-             else if ( (obj.MotorType == MtrType_IPMSM) || (obj.MotorType == MtrType_SYNRM) )                                                                                                              \
-                {  obj.EstStep = LdqEstStep_START;}                                                                                                                                                      \
-                                                                                                                                                                                                       \
-             /* STOP */                                                                                                                                                                                \
-             obj.OpPtNo++;                                                                                                                                                                               \
-             if (obj.OpPtNo > LDQ_TEST_NUMBER)                                                                                                                                                           \
-                {  if (obj.MotorType == MtrType_INDUCTION)                                                                                                                                               \
-                      {  obj.Finish = 1.0f;                                                                                                                                                              \
-                         obj.VariableInit = 1.0f;}                                                                                                                                                       \
-                   else if ( (obj.MotorType == MtrType_IPMSM) || (obj.MotorType == MtrType_SYNRM) )                                                                                                        \
-                      {  if (obj.Axis == D_AXIS)                                                                                                                                                         \
-                            {  obj.Axis = Q_AXIS;                                                                                                                                                        \
-                               obj.EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION;                                                                                                                     \
-                               obj.OpPtNo = 0;}                                                                                                                                                          \
-                         else                                                                                                                                                                          \
-                            {  obj.Finish = 1.0f;                                                                                                                                                        \
-                               obj.VariableInit = 1.0;}                                                                                                                                                 \
-                       }                                                                                                                                                                               \
-                }                                                                                                                                                                                      \
-          }                                                                                                                                                                                            \
-                                                                                                                                                                                                       \
-                                                                                                                                                                                                       \
-       /* ASSIGN REFERENCE CURRENT FOR SMALL SIGNAL ANALYSIS AROUND AN OPERATING POINT. */                                                                                                             \
-       /* Compute the angle. Saturate the angle rate within (0, 1).  */                                                                                                                                \
-       if (obj.InjSineEnable == 1)                                                                                                                                                                    \
-          {  obj.InjSampleCounter++;}                                                                                                                                                                    \
-       else                                                                                                                                                                                            \
-          {  obj.InjSampleCounter = 0;}                                                                                                                                                                  \
-                                                                                                                                                                                                       \
-       obj.InjCurAngle = obj.InjSampleCounter * obj.InjCurAngleStep;                                                                                                                                           \
-       while (obj.InjCurAngle > 1.0f)                                                                                                                                                                \
-             {  obj.InjCurAngle -= 1.0f;}                                                                                                                                                            \
-       while (obj.InjCurAngle < 0.0f)                                                                                                                                                                \
-             {  obj.InjCurAngle += 1.0f;}                                                                                                                                                            \
-                                                                                                                                                                                                       \
-       /* Be careful with multiplication between 'CurrentSign' and 'OpPtNo'. Use type-casting (int16) for OpPtNo because CurrentSign is 'int16' and OpPtNo is 'Uint16'. */                             \
-       obj -> Iref = ( (v.CurrentSign*(int16)v.OpPtNo) * obj -> IrefDCStep) + ( obj -> InjCurMagn * sinf(obj.InjCurAngle * MATH_TWO_TYPE));                                                                              \
-       /* Increase ac amplitude the zero dc case */                                                                                                                                                    \
-       if (v.OpPtNo == 0) {  obj -> Iref = ( (LDQ_TEST_NUMBER * (obj -> IrefDCStep / 2.0f)) * sinf(obj.InjCurAngle * MATH_TWO_TYPE));}
+
+       /* Operating point change. */
+       if (obj -> EstStep == LdqEstStep_OPERATING_POINT_CHANGE)
+          {
+             if (obj -> MotorType == MtrType_INDUCTION)
+                {  obj -> EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION;}
+             else if ( (obj -> MotorType == MtrType_IPMSM) || (obj -> MotorType == MtrType_SYNRM) )
+                {  obj -> EstStep = LdqEstStep_START;}
+
+             /* STOP */
+             obj -> OpPtNo++;
+             if (obj -> OpPtNo > LDQ_TEST_NUMBER)
+                {  if (obj -> MotorType == MtrType_INDUCTION)
+                      {  obj -> Finish = 1.0f;
+                         obj -> VariableInit = 1.0f;}
+                   else if ( (obj -> MotorType == MtrType_IPMSM) || (obj -> MotorType == MtrType_SYNRM) )
+                      {  if (obj -> Axis == D_AXIS)
+                            {  obj -> Axis = Q_AXIS;
+                               obj -> EstStep = LdqEstStep_POSITIVE_CURRENT_ESTIMATION;
+                               obj -> OpPtNo = 0;}
+                         else
+                            {  obj -> Finish = 1.0f;
+                               obj ->VariableInit = 1.0;}
+                       }
+                }
+          }
+
+
+       /* ASSIGN REFERENCE CURRENT FOR SMALL SIGNAL ANALYSIS AROUND AN OPERATING POINT. */
+       /* Compute the angle. Saturate the angle rate within (0, 1).  */
+       if (obj -> InjSineEnable == 1)
+          {  obj -> InjSampleCounter++;}
+       else
+          {  obj -> InjSampleCounter = 0;}
+
+       obj -> InjCurAngle = obj -> InjSampleCounter * obj -> InjCurAngleStep;
+       while (obj -> InjCurAngle > 1.0f)
+             {  obj -> InjCurAngle -= 1.0f;}
+       while (obj -> InjCurAngle < 0.0f)
+             {  obj -> InjCurAngle += 1.0f;}
+
+       /* Be careful with multiplication between 'CurrentSign' and 'OpPtNo'. Use type-casting (int16) for OpPtNo because CurrentSign is 'int16' and OpPtNo is 'Uint16'. */
+       obj -> Iref = ( (obj -> CurrentSign*(int16_t)obj ->OpPtNo) * obj -> IrefDCStep) + ( obj -> InjCurMagn * sinf(obj -> InjCurAngle * MATH_TWO_PI));
+       /* Increase ac amplitude the zero dc case */
+       if (obj -> OpPtNo == 0) {  obj -> Iref = ( (LDQ_TEST_NUMBER * (obj -> IrefDCStep / 2.0f)) * sinf(obj -> InjCurAngle * MATH_TWO_PI));}
 
 
     return;

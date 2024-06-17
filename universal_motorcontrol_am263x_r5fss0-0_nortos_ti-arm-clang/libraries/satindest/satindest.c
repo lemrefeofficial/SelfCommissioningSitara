@@ -79,21 +79,23 @@ void SATINDEST_setParams(SATINDEST_Handle handle)
     SATINDEST_Obj *obj = (SATINDEST_Obj *)handle;
 
       obj -> VariableInit = 1.0f;
-      obj -> MotorType;
-      obj -> Nbase = Fs/BASE_FREQ;
+      obj -> MotorType = MtrType_IPMSM;
+      // obj -> Nbase = Fs/BASE_FREQ;
+      obj -> Nbase = 15000 / 100 ;
+
       obj -> InjSettleWait_PrdNo = 1;
       obj -> dcSettleWait_SampleNo = 20; // 2 ms
-      obj -> InjCurFreqInit = _IQ(5);
-      obj -> InjCurMagn = _IQ(0.05);
-      obj -> IrefDCStep = _IQ(0.1);
+      obj -> InjCurFreqInit = (5.0f);
+      obj -> InjCurMagn = (0.05f);
+      obj -> IrefDCStep = (0.1f);
 
       obj->Vdc_Base = 409.0f;
       obj->Vph_Base = 236.1f;
       obj->I_Base = 10.0f;
       obj->F_Base = 100.0f;
 
-      if (MotorType == MtrType_INDUCTION)
-             {  obj -> InjCurFreqInit = _IQ(0.4);
+      if (obj -> MotorType == MtrType_INDUCTION)
+             {  obj -> InjCurFreqInit = (0.4f);
                 obj -> InjSettleWait_PrdNo = 50;
              }
 
@@ -103,7 +105,7 @@ void SATINDEST_setParams(SATINDEST_Handle handle)
 //    obj->InjVolHalfPrdSampleNoMax = 30.0f;
 //    obj->InjVolHalfPrdSampleNoInit = 8.0f;
 //    obj->InjSettlePrd = 2.0f;
-////    obj->AngIntgGain = 0.0166666f;
+////  obj->AngIntgGain = 0.0166666f;
 //    obj->AngIntgGain = 0.0066666f;
 //    obj->ElecThetaStep = 0.002f;
 //    obj->InjVolMagnInit = 0.002f;
