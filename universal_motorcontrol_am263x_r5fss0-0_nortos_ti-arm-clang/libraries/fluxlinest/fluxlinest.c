@@ -1,6 +1,6 @@
 //#############################################################################
 //
-// FILE:   pi.c
+// FILE:   fluxlinest.c
 //
 // TITLE:  C28x InstaSPIN Proportional-Integral (PI) controller library
 //         (floating point)
@@ -47,62 +47,32 @@
 #pragma CODE_SECTION(PI_init,"Cla1Prog2");
 #endif
 
-////*****************************************************************************
-////
-//// PI_init
-////
-////*****************************************************************************
-//PI_Handle
-//PI1_init(void *pMemory, const size_t numBytes)
-//{
-//    PI_Handle handle;
-//
-//    if((int16_t)numBytes < (int16_t)sizeof(PI_Obj))
-//    {
-//        return((PI_Handle)NULL);
-//    }
-//
-//    //
-//    // Assign the handle
-//    //
-//    handle = (PI_Handle)pMemory;
-//
-//    return(handle);
-//} // end of PI_init() function
-//
-//// end of file
-
-
-//*****************************************************************************
-//
+//****************************************************************************
 // SELFCOMM_init
-//
 //*****************************************************************************
-SELFCOMMM_Handle
-SELFCOMMM_init(void *pMemory, const size_t numBytes)
+FLUXLINEST_Handle FLUXLINEST_init(void *pMemory, const size_t numBytes)
 {
-    SELFCOMMM_Handle handle;
+    FLUXLINEST_Handle handle;
 
-    if((int16_t)numBytes < (int16_t)sizeof(SELFCOMMM_Obj))
+    if((int16_t)numBytes < (int16_t)sizeof(FLUXLINEST_Obj))
     {
-        return((SELFCOMMM_Handle)NULL);
+        return((FLUXLINEST_Handle)NULL);
     }
 
     //
     // Assign the handle
     //
-    handle = (SELFCOMMM_Handle)pMemory;
+    handle = (FLUXLINEST_Handle)pMemory;
 
     return(handle);
 } // end of PI_init() function
 
 // end of file
 
-
 // Sets up parameters for angle generation
-void SELFCOMM_setParams(SELFCOMMM_Handle handle)
+void FLUXLINEST_setParams(FLUXLINEST_Handle handle)
 {
-    SELFCOMMM_Obj *obj = (SELFCOMMM_Obj *)handle;
+    FLUXLINEST_Obj *obj = (FLUXLINEST_Obj *)handle;
 
 
     obj->VariableInit = 1.0f;
