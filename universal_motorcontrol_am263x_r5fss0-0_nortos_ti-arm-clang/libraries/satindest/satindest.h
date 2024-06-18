@@ -281,10 +281,10 @@ static inline void SATINDEST_run(SATINDEST_Handle handle, const float32_t Vd_fb,
                 {  obj -> Lsigma[obj -> OpPtNo] = obj -> Lest;}
              else if ( (obj -> MotorType == MtrType_IPMSM) || (obj -> MotorType == MtrType_SYNRM) )
                 { if (obj -> Axis == D_AXIS)
-                     {  obj -> Ld[LDQ_TEST_NUMBER + obj -> CurrentSign*(int16_t)obj -> OpPtNo] = obj -> Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
+                     {  obj -> Lq[LDQ_TEST_NUMBER + obj -> CurrentSign*(int16_t)obj -> OpPtNo] = obj -> Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
                   else
                      { obj -> test1 = 25.0f;
-                       obj -> Lq[LDQ_TEST_NUMBER + obj -> CurrentSign*(int16_t)obj -> OpPtNo] = obj -> Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
+                       obj -> Ld[LDQ_TEST_NUMBER + obj -> CurrentSign*(int16_t)obj -> OpPtNo] = obj -> Lest;} /* Be careful with multiplication. Use type-casting because CurrentSign is 'int16' and OpPtNo 'Uint16'. */
                 }
           }
 
