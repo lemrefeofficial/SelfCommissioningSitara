@@ -506,6 +506,9 @@ typedef struct _MOTOR_Vars_t_
     Bool enableSatIndEst1;
     Bool enableSatIndEst2;
 
+    Bool enableFluxLinEst1;
+    Bool enableFluxLinEst2;
+
 #if defined(MOTOR1_FILTERIS)
     bool flagEnableFilterIs;
 #endif  // MOTOR1_FILTERIS
@@ -791,6 +794,7 @@ typedef struct _MOTOR_Vars_t_
 
     SELFCOMMM_Handle self_comm_step1_H;
     SATINDEST_Handle satindest_step4_H;
+    FLUXLINEST_Handle fluxlinest_step6_H;
 
 //    float32_t oneOverDcBus_invV;    // The DC Bus inverse, 1/V
 

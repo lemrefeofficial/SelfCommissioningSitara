@@ -91,6 +91,8 @@ __attribute__ ((section("foc_data"))) SELFCOMMM_Obj    self_comm_step1_M1;
 
 __attribute__ ((section("foc_data"))) SATINDEST_Obj    satindest_step4_M1;
 
+__attribute__ ((section("foc_data"))) FLUXLINEST_Obj    fluxlinest_step6_M1;
+
 #if(DMC_BUILDLEVEL == DMC_LEVEL_2)
 //!< the Vs per Freq object for open loop control
 __attribute__ ((section("foc_data"))) VS_FREQ_Obj    VsFreq_M1;
@@ -323,8 +325,11 @@ void initMotor1CtrlParameters(MOTOR_Handle handle)
     obj->enableSelf_comm1= FALSE;
     obj->enableSelf_comm2= FALSE;
 
-    obj->enableSatIndEst1= TRUE;
+    obj->enableSatIndEst1= FALSE;
     obj->enableSatIndEst2= FALSE;
+
+    obj->enableFluxLinEst1= TRUE;
+    obj->enableFluxLinEst2= FALSE;
 
     obj->IsSet_A = 0.0f;
 
@@ -463,6 +468,9 @@ void initMotor1CtrlParameters(MOTOR_Handle handle)
 
     obj->satindest_step4_H = SATINDEST_init(&satindest_step4_M1, sizeof(satindest_step4_M1));
     SATINDEST_setParams(obj->satindest_step4_H);
+
+    obj->fluxlinest_step6_H = FLUXLINEST_init(&fluxlinest_step6_M1, sizeof(fluxlinest_step6_M1));
+        FLUXLINEST_setParams(obj->fluxlinest_step6_H);
 
 #if(DMC_BUILDLEVEL <= DMC_LEVEL_3)
     obj->Idq_set_A.value[0] = 0.0f;
@@ -1188,6 +1196,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
     USER_Params *objUser = (USER_Params *)(obj->userParamsHandle);
     SELFCOMMM_Obj *obj_self = (SELFCOMMM_Obj *)(obj->self_comm_step1_H);
     SATINDEST_Obj *obj_satindest = (SATINDEST_Obj *)(obj->satindest_step4_H);
+    FLUXLINEST_Obj *obj_fluxlinest = (FLUXLINEST_Obj *)(obj->fluxlinest_step6_H);
 
     // acknowledge the ADC interrupt
     HAL_ackMtr1ADCInt();

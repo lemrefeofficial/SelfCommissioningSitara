@@ -132,7 +132,7 @@ extern void FLUXLINEST_setParams(FLUXLINEST_Handle handle);
 
 // fonksiyonun inputlarini girmeyi unutma
 
-static inline void FLUXLINEST_run(FLUXLINEST_Handle handle, const float32_t Vd_fb, const float32_t Vq_fb, const float32_t id_fb, const float32_t iq_fb)
+static inline void FLUXLINEST_run(FLUXLINEST_Handle handle, const float32_t MechSpeed, const float32_t iq_fb, const float32_t Vq_fb)
 {
 
     FLUXLINEST_Obj *obj = (FLUXLINEST_Obj *)handle;
@@ -170,6 +170,8 @@ static inline void FLUXLINEST_run(FLUXLINEST_Handle handle, const float32_t Vd_f
 
           obj -> Finish = 0.0f;
        }
+
+  obj -> SpeedFbk =  MechSpeed
 
     /* Speed control error is filtered by a 1st order Low-Pass Filter (Backward Euler discretized) because the error will be used in comparison, noise may cause wrong decision. */
     // obj -> SpeedErrFiltered += _IQmpy(obj -> LPF_SpeedErr_Gain, ((obj -> SpeedRef - obj -> SpeedFbk) - obj -> SpeedErrFiltered));
