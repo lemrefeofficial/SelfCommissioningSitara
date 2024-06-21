@@ -48,7 +48,7 @@
 #endif
 
 //****************************************************************************
-// SELFCOMM_init
+// FLUXLINEST_init
 //*****************************************************************************
 FLUXLINEST_Handle FLUXLINEST_init(void *pMemory, const size_t numBytes)
 {
@@ -75,19 +75,19 @@ void FLUXLINEST_setParams(FLUXLINEST_Handle handle)
     FLUXLINEST_Obj *obj = (FLUXLINEST_Obj *)handle;
 
 
-    obj -> VariableInit = TRUE;
+    obj -> VariableInit = 1.0f;
     obj -> AveragingSize = 20000;
-    obj -> WaitingTime2Settle_Speed = 10000;
-    obj -> MaxTime4Settle = 100000;
-    obj -> TestSpeed = _IQ(0.25);
-    obj -> SpeedErrLim4Settle = _IQ(0.05);
-    obj -> Rs = _IQ(0.02984);
-    obj -> Lq = _IQ(0.35);
-    obj -> TimePU = _IQ(2*PI*BASE_FREQ*Ts);
+    obj -> WaitingTime2Settle_Speed = 10000.0f;
+    obj -> MaxTime4Settle = 100000.0f;
+    obj -> TestSpeed = 0.25f;
+    obj -> SpeedErrLim4Settle = 0.05f;
+    obj -> Rs = 0.11;
+    obj -> Lq = 0.21f;
+    obj -> TimePU = MATH_TWO_PI *  100.0f * (0.001f/15.0f);
  // obj -> LPF_IqDeriv_Gain = _IQdiv(_IQmpy(_IQ(5.0),Est_MagnFlux_DFT.TimePU), (_IQ(1.0) + _IQmpy(_IQ(5.0), Est_MagnFlux_DFT.TimePU))); // LPF with 500-Hz cut-off - Backward Euler
-    obj -> LPF_IqDeriv_Gain = _IQdiv(((5.0) * obj -> TimePU) / ( 1.0f + (5.0f * obj -> TimePU))); // LPF with 500-Hz cut-off - Backward Euler
+    obj -> LPF_IqDeriv_Gain = (((5.0f) * obj -> TimePU) / ( 1.0f + (5.0f * obj -> TimePU))); // LPF with 500-Hz cut-off - Backward Euler
  // obj -> LPF_SpeedErr_Gain = _IQdiv(_IQmpy(_IQ(0.01), Est_MagnFlux_DFT.TimePU), (_IQ(1.0) + _IQmpy(_IQ(0.01), Est_MagnFlux_DFT.TimePU))); // LPF with 1-Hz cut-off - Backward Euler
-    obj -> LPF_SpeedErr_Gain = ((0.01f * Est_MagnFlux_DFT.TimePU) / (1.0f + (0.01f * obj -> TimePU))); // LPF with 1-Hz cut-off - Backward Euler
+    obj -> LPF_SpeedErr_Gain = ((0.01f * obj -> TimePU) / (1.0f + (0.01f * obj -> TimePU))); // LPF with 1-Hz cut-off - Backward Euler
 
     obj -> Vdc_Base = 409.0f;
     obj -> Vph_Base = 236.1f;

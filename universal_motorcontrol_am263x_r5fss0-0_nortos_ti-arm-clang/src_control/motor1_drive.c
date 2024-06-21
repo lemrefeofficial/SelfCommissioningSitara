@@ -642,7 +642,6 @@ void initMotor1CtrlParameters(MOTOR_Handle handle)
     obj->hz2Rpm_sf = 60.0f / objUser->motor_numPolePairs;
 #endif  // MOTOR1_RPM_CMD
 
-
     // setup the controllers, speed, d/q-axis current pid regulator
     setupControllers(handle);
 
@@ -669,6 +668,8 @@ void runMotor1OffsetsCalculation(MOTOR_Handle handle)
 
     HAL_setMtrCMPSSDACValue(obj->halMtrHandle,
                             objSets->dacCMPValH, objSets->dacCMPValL);
+
+
 
 #if defined(MOTOR1_DCLINKSS)
     HAL_MTR_Obj *objHal = (HAL_MTR_Obj *)(obj->halMtrHandle);
@@ -1025,7 +1026,7 @@ void runMotor1Control(MOTOR_Handle handle)
         }
         else
         {
-            obj->stopWaitTimeCnt = 0;
+            obj -> stopWaitTimeCnt = 0;
         }
     }
     else
@@ -1204,7 +1205,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
     // read the ADC data with offsets
     HAL_readMtr1ADCData(&obj->adcData);
 
-    //obj->adcData.VdcBus_V =  100.0f;
+    // obj -> adcData.VdcBus_V =  100.0f;
 
 
 
@@ -1761,23 +1762,60 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 
     if(obj->motorState >= MOTOR_CL_RUNNING)
     {
-        obj->angleFOC_rad = obj->angleENC_rad;
-    }
-    else if(obj->motorState == MOTOR_OL_START)
-    {
-        obj->angleFOC_rad = obj->angleGen_rad;
-        obj->enableSpeedCtrl = FALSE;
-
-        obj->Idq_out_A.value[0] = 0.0f;
-
-        if(obj->speed_int_Hz > 0.0f)
+      if(obj -> enableFluxLinEst1 ==TRUE)
+      {
+        if(obj -> enableFluxLinEst2 ==TRUE)
         {
-            obj->IsRef_A = obj->startCurrent_A;
-            obj->Idq_out_A.value[1] = obj->startCurrent_A;
+            obj -> enableSpeedCtrl = TRUE;
+            obj -> enableCurrentCtrl = TRUE;
+            obj -> angleFOC_rad = obj -> angleENC_rad;
+
+//            TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+//            ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+
         }
         else
         {
-            obj->IsRef_A = -obj->startCurrent_A;
+            obj -> enableSpeedCtrl = FALSE;
+            obj -> enableCurrentCtrl = FALSE;
+            obj -> angleFOC_rad  = 0.0f;
+
+            obj -> IsRef_A = 0.0f;
+            obj -> Idq_out_A.value[0] = 0.0f;
+            obj -> Idq_out_A.value[1] = 0.0f;
+
+            TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+            ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+
+            obj -> Vdq_ffwd_V.value[0] = 0.0f;
+            obj -> Vdq_ffwd_V.value[1] = 0.0f;
+
+            obj -> Vdq_out_V.value[0] = 0.0f;
+            obj -> Vdq_out_V.value[1] = 0.0f;
+        }
+
+      }
+      else
+      {
+          obj -> angleFOC_rad = obj->angleENC_rad;
+      }
+    }
+
+    else if(obj -> motorState == MOTOR_OL_START)
+    {
+        obj -> angleFOC_rad = obj->angleGen_rad;
+        obj -> enableSpeedCtrl = FALSE;
+
+        obj -> Idq_out_A.value[0] = 0.0f;
+
+        if(obj -> speed_int_Hz > 0.0f)
+        {
+            obj -> IsRef_A = obj->startCurrent_A;
+            obj -> Idq_out_A.value[1] = obj->startCurrent_A;
+        }
+        else
+        {
+            obj->IsRef_A = -obj -> startCurrent_A;
             obj->Idq_out_A.value[1] = -obj->startCurrent_A;
         }
 
@@ -2316,9 +2354,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
             {  obj -> IdqRef_A.value[0] = 0.0f * 10.0f;
 
                obj -> IdqRef_A.value[1] = obj_satindest -> Iref * 10.0f;
-
             }
-
 
              // Finish
              if (obj_satindest -> Finish == 1.0f)
@@ -2347,6 +2383,89 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
         }
 
     }
+
+    if (obj -> enableFluxLinEst1 == TRUE)
+    {
+        if  (obj -> enableFluxLinEst2 == TRUE)
+        {
+
+            // Main Estimation code will be here
+
+            // Enables.Sensored_EncSpdEst = FALSE;
+            // Enables.Sensorless_IPMSM_HFI = TRUE;
+            // Enables.Sensorless_IPMSM_Observer = FALSE;
+
+            //TdComp.Enable = TRUE;
+            // TdComp.ExponentialModelEn = TRUE;
+
+
+            // Provide inputs
+            //Est_MagnFlux_DFT.SpeedFbk = Fbks.MechSpeed;
+            //Est_MagnFlux_DFT.IqFbk = Fbks.Iq;
+            //Est_MagnFlux_DFT.VqRef = Fbks.VqSW;
+
+            if (obj_fluxlinest -> SlowDownEn == 0.0f)
+            //  {  if (_IQabs(Refs.SpeedRamped) > _IQabs(_IQmpy(_IQ(0.95), Est_MagnFlux_DFT.TestSpeed )) )
+               {  if (MATH_abs(obj -> speed_int_Hz * obj_fluxlinest -> F_Base) > MATH_abs((0.95f * (obj_fluxlinest -> TestSpeed * obj_fluxlinest -> F_Base)  )) )
+                     {  obj_fluxlinest -> SpeedRampArrives = 1.0f;}
+                  else
+                     {  obj_fluxlinest -> SpeedRampArrives = 0.0f;}
+               }
+            else
+            //   {  if (_IQabs(Refs.SpeedRamped) < _IQabs(_IQmpy(_IQ(0.05), Est_MagnFlux_DFT.TestSpeed )) )
+               {  if (MATH_abs(obj -> speed_int_Hz  * obj_fluxlinest -> F_Base) < MATH_abs((0.05f * (obj_fluxlinest -> TestSpeed * obj_fluxlinest -> F_Base)  )) )
+                     {obj_fluxlinest -> SpeedRampArrives = 1.0f;}
+                  else
+                     {obj_fluxlinest -> SpeedRampArrives = 0.0f;}
+               }
+
+
+            // Execute
+            //IDENTIFICATION_MAGNFLUX_DFT_MACRO(Est_MagnFlux_DFT)
+            FLUXLINEST_run(obj -> fluxlinest_step6_H, obj -> speed_Hz, obj->Idq_in_A.value[1], obj -> Vdq_out_V.value[1]);
+
+
+            // Assign outputs
+            // Refs.SpeedStep = Est_MagnFlux_DFT.SpeedRef;
+               obj -> speedRef_Hz = ((obj_fluxlinest -> SpeedRef) * (obj_fluxlinest -> F_Base)) ;
+
+            // OPTIONAL. Save one decceleration and acceleration if next step is inertia and friction estimation.
+            // Directly pass to next step without full stop.
+            if (obj_fluxlinest -> SlowDownEn == 1.0f)
+               {  /* Est_MagnFlux_DFT.Finish = TRUE; */ }
+
+
+            // Finish
+            if (obj_fluxlinest -> Finish == 1.0f)
+               {  obj_fluxlinest -> Finish = 0.0f;
+                  obj_fluxlinest -> VariableInit = 1.0f;
+
+
+                  obj -> enableFluxLinEst2 = FALSE;
+                  obj -> enableSpeedCtrl = FALSE;
+                  obj -> enableCurrentCtrl = FALSE;
+
+
+                  obj -> IsRef_A = 0.0f;
+                  obj -> Idq_out_A.value[0] = 0.0f;
+                  obj -> Idq_out_A.value[1] = 0.0f;
+
+                  TRAJ_setIntValue(obj -> trajHandle_spd, 0.0f);
+                  ANGLE_GEN_setAngle(obj -> angleGenHandle, 0.0f);
+
+                  obj -> Vdq_ffwd_V.value[0] = 0.0f;
+                  obj -> Vdq_ffwd_V.value[1] = 0.0f;
+
+                  obj -> Vdq_out_V.value[0] = 0.0f;
+                  obj -> Vdq_out_V.value[1] = 0.0f;
+
+                  //lsw = lsw_IDLE; // erase later
+               }
+
+        }
+
+    }
+
 
 
 //---------- Common Speed and Current Loop for all observers -------------------
@@ -2595,6 +2714,20 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
             }
         }
     }
+
+
+    if(obj -> enableFluxLinEst1 == TRUE)
+        {
+
+            if(obj -> enableFluxLinEst2 == TRUE)
+            {
+                // Assign outputs
+                obj -> IdqRef_A.value[0] = 0.0f * 10.0f;
+            }
+        }
+
+
+
 
     if(obj->enableCurrentCtrl == TRUE)
     {

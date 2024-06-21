@@ -82,6 +82,7 @@ extern "C"
 #include "angle_gen.h"
 #include "selfcommm.h"
 #include "satindest.h"
+#include "fluxlinest.h"
 #include "volt_recons.h"
 
 

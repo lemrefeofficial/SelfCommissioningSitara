@@ -116,6 +116,7 @@ extern ANGLE_GEN_Obj    angleGen_M1;
 
 extern SELFCOMMM_Obj    self_comm_step1_M1;
 extern SATINDEST_Obj    satindest_step4_M1;
+extern FLUXLINEST_Obj    fluxlinest_step6_M1;
 
 #if (DMC_BUILDLEVEL == DMC_LEVEL_2)
 //!< the Vs per Freq object for open loop control

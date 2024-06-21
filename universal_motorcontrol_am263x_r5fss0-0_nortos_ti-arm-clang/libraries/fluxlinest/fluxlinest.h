@@ -110,6 +110,8 @@ typedef struct _FLUXLINEST_Obj_
     float32_t I_Base;
     float32_t F_Base;
 
+    float32_t BASE_FREQ;
+
 
     float32_t test1;
 
@@ -129,8 +131,6 @@ extern FLUXLINEST_Handle FLUXLINEST_init(void *pMemory, const size_t numBytes);
 extern void FLUXLINEST_setParams(FLUXLINEST_Handle handle);
 
 /*****************************************************************************/
-
-// fonksiyonun inputlarini girmeyi unutma
 
 static inline void FLUXLINEST_run(FLUXLINEST_Handle handle, const float32_t MechSpeed, const float32_t iq_fb, const float32_t Vq_fb)
 {
@@ -171,7 +171,9 @@ static inline void FLUXLINEST_run(FLUXLINEST_Handle handle, const float32_t Mech
           obj -> Finish = 0.0f;
        }
 
-  obj -> SpeedFbk =  MechSpeed
+  obj -> SpeedFbk =  MechSpeed / obj -> F_Base;
+  obj -> IqFbk = iq_fb / obj -> I_Base;
+  obj -> VqRef = Vq_fb / obj -> Vph_Base;
 
     /* Speed control error is filtered by a 1st order Low-Pass Filter (Backward Euler discretized) because the error will be used in comparison, noise may cause wrong decision. */
     // obj -> SpeedErrFiltered += _IQmpy(obj -> LPF_SpeedErr_Gain, ((obj -> SpeedRef - obj -> SpeedFbk) - obj -> SpeedErrFiltered));
@@ -214,7 +216,7 @@ static inline void FLUXLINEST_run(FLUXLINEST_Handle handle, const float32_t Mech
          obj -> BackEMF_Average += ( (obj -> VqRef - (obj -> Rs * obj -> IqFbk) - (obj -> Lq * obj -> IqFbkDerivative)) * obj -> AveragerInputGain);
 
           /* STOP estimation when cycle number hits the predefined limit value of 'AveragingSize' */
-          if (obj -> CtrlCycleCounter >= obj -> (float)AveragingSize)
+          if (obj -> CtrlCycleCounter >= (float)(obj -> AveragingSize))
              {  obj -> CtrlCycleCounter = 0.0f;
                 obj -> SpeedRampArrives = 0.0f;
                 obj -> MagnFluxEstEn = 0.0f;
