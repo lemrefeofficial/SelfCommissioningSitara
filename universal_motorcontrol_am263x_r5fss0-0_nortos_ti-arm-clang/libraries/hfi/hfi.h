@@ -182,188 +182,214 @@ static inline void HFI_run(HFI_Handle handle, const float32_t MechSpeed, const f
         /* Initialize some variables. */
         /* This enables safe start and usage of this routine again without resetting CPU. */
 
-    if (obj -> VariableInit == TRUE)                                                                                                                                                                     \
-       {  obj -> VariableInit = FALSE;                                                                                                                                                                   \
-                                                                                                                                                                                                    \
-          obj -> SignalSelectionError = FALSE;                                                                                                                                                           \
-          obj -> GoertzelEnable = FALSE;                                                                                                                                                                 \
-          obj -> MagnPolarDetectFinished = FALSE;                                                                                                                                                        \
-          obj -> MagnPolarDetectMode = 0;                                                                                                                                                                \
-          obj -> CtrlCycleCounter = 0;                                                                                                                                                                   \
-          obj -> InjSampleCounter = 0;                                                                                                                                                                   \
-          obj -> GoertzelCounter = 0;                                                                                                                                                                    \
-                                                                                                                                                                                                    \
-          obj -> InjVolHalfPrdSampleNo = obj -> InjVolHalfPrdSampleNoInit - 1;                                                                                                                                \
-          do {  obj -> InjVolHalfPrdSampleNo++;                                                                                                                                                          \
-                if (obj -> InjVolHalfPrdSampleNo > obj -> InjVolHalfPrdSampleNoMaxLim)                                                                                                                        \
-                   {  obj -> InjVolHalfPrdSampleNo = obj -> InjVolHalfPrdSampleNoMaxLim;                                                                                                                      \
-                      obj -> InjVolMagnMaxLim = obj -> InjVolMagn;    /* Precaution to break the possible endless loop. */                                                                                    \
-                      obj -> SignalSelectionError = TRUE; /* DONT FORGET TO USE THIS ERROR MESSAGE. */                                                                                                   \
-                   }                                                                                                                                                                                \
-                                                                                                                                                                                                    \
-                /* '_IQdiv' can work for the division of two integer variables. */                                                                                                                  \
-                obj -> InjVolAngleStep = _IQdiv( (1UL), (2*obj -> InjVolHalfPrdSampleNo) );                                                                                                                   \
-                obj -> InjVolFreq = _IQdiv(obj -> InjVolAngleStep, obj -> AngIntgGain);                                                                                                                            \
-                                                                                                                                                                                                    \
-                obj -> InjVolMagn = _IQmpy(_IQmpy(obj -> InjVolFreq, obj -> Ld), obj -> IhfiTarget);                                                                                                                    \
-             }                                                                                                                                                                                      \
-          while (obj -> InjVolMagn > obj -> InjVolMagnMaxLim);                                                                                                                                                \
-                                                                                                                                                                                                    \
-          obj -> Kerror = _IQdiv( _IQmpy(obj -> InjVolMagn, _IQdiv2(obj -> Lq - obj -> Ld)), _IQmpy(obj -> InjVolFreq, _IQmpy(obj -> Lq, obj -> Ld)) );                                                                                \
-          obj -> HFI_Wc = _IQdiv(obj -> InjVolFreq, obj -> Ratio_InjFreq_WcHFI);                                                                                                                                   \
-                                                                                                                                                                                                    \
-          /* OVERFLOW TEST FOR FIXED-POINT IMPLEMENTATION: Decrease target 'obj -> HFI_Wc'. */                                                                                                           \
-          if (MATH_TYPE == IQ_MATH)                                                                                                                                                                 \
-             {  obj -> Kp_hfi = _IQdiv(obj -> Kerror, obj -> HFI_Wc); /* In reality, it is 1/Kp which is small and hence safe. */                                                                                  \
-                while ( obj -> Kp_hfi < _IQ( 1.0/( 1UL<<(30 - GLOBAL_Q) ) ) )                                                                                                                            \
-                    {  obj -> Kp_hfi = _IQmpy2(obj -> Kp_hfi);                                                                                                                                                \
-                       obj -> HFI_Wc = _IQdiv2(obj -> HFI_Wc);                                                                                                                                                \
-                       obj -> Ratio_InjFreq_WcHFI = _IQmpy2(obj -> Ratio_InjFreq_WcHFI);} /* Update the ratio which is now utilized. */                                                                       \
-             }                                                                                                                                                                                      \
-                                                                                                                                                                                                    \
-          obj -> Kp_hfi = _IQdiv(obj -> HFI_Wc, obj -> Kerror); /* CHECKED FOR OVERFLOW. */                                                                                                                        \
-          obj -> Ki_hfi = _IQmpy(obj -> TimePU, _IQdiv(obj -> HFI_Wc, obj -> Ratio_WcHFI_WcLPF));                                                                                                                       \
-                                                                                                                                                                                                    \
-          obj -> LPF_Error_Wc = _IQmpy(obj -> HFI_Wc, obj -> Ratio_WcHFI_WcLPF);                                                                                                                                   \
-          obj -> LPF_SpeedEst_Wc = obj -> HFI_Wc;                                                                                                                                                             \
-                                                                                                                                                                                                    \
-          /* Current loop need 1.5 multiples and position estimator needs 2 multiples. But it is secure to use 3 as multiplier. */                                                                  \
-          obj -> Wait4SettleCurrent = 3*_IQmpy((_iq)obj -> SampleNoBase, _IQdiv(_IQ(1.0), _IQmpy(obj -> Ratio_WcCurrent_WcHFI, obj -> HFI_Wc)));                                                                        \
-          obj -> Wait4SettleHFI = 3*_IQmpy((_iq)obj -> SampleNoBase, _IQdiv(_IQ(1.0), obj -> HFI_Wc));                                                                                                             \
-                                                                                                                                                                                                    \
-          obj -> Intg = _IQ(0.0);                                                                                                                                                                        \
-          obj -> aw = _IQ(0.0);                                                                                                                                                                          \
-                                                                                                                                                                                                    \
-          obj -> InjVolAngle = -_IQdiv2(obj -> InjVolAngleStep); /* Injection angle starts half sample positive to consider ZOH nature of the inverter. */                                                    \
-          obj -> DemodAngle = -obj -> InjVolAngleStep; /* Start one sample shifted to consider the computation delay. */                                                                                      \
-          obj -> BPF_Id_OutPast1 = _IQ(0.0);                                                                                                                                                             \
-          obj -> BPF_Id_OutPast2 = _IQ(0.0);                                                                                                                                                             \
-          obj -> BPF_Id_InPast1 = _IQ(0.0);                                                                                                                                                              \
-          obj -> BPF_Id_InPast2 = _IQ(0.0);                                                                                                                                                              \
-          obj -> BPF_Iq_OutPast1 = _IQ(0.0);                                                                                                                                                             \
-          obj -> BPF_Iq_OutPast2 = _IQ(0.0);                                                                                                                                                             \
-          obj -> BPF_Iq_InPast1 = _IQ(0.0);                                                                                                                                                              \
-          obj -> BPF_Iq_InPast2 = _IQ(0.0);                                                                                                                                                              \
-          /* Filter design. */                                                                                                                                                                      \
-          obj -> BPF_GainOut1 = _IQdiv( _IQmpy2(_IQcosPU(obj -> InjVolAngleStep)), (_IQ(1.0) + _IQmpy(obj -> BPF_Zeta, _IQsinPU(obj -> InjVolAngleStep))) );                                                            \
-          obj -> BPF_GainOut2 = _IQdiv( ( _IQmpy(obj -> BPF_Zeta, _IQsinPU(obj -> InjVolAngleStep)) - _IQ(1.0) ), ( _IQ(1.0) + _IQmpy(obj -> BPF_Zeta, _IQsinPU(obj -> InjVolAngleStep)) ) );                                \
-          obj -> BPF_GainIn = _IQdiv( ( _IQmpy(obj -> BPF_Zeta, _IQsinPU(obj -> InjVolAngleStep)) ), ( _IQ(1.0) + _IQmpy(obj -> BPF_Zeta, _IQsinPU(obj -> InjVolAngleStep)) ) );                                             \
-          obj -> LPF_Error_Gain = _IQdiv(_IQmpy(obj -> LPF_Error_Wc, obj -> TimePU), (_IQ(1.0) + _IQmpy(obj -> LPF_Error_Wc, obj -> TimePU)));                                                                               \
-          obj -> LPF_SpeedEst_Gain = _IQdiv(_IQmpy(obj -> LPF_SpeedEst_Wc, obj -> TimePU), (_IQ(1.0) + _IQmpy(obj -> LPF_SpeedEst_Wc, obj -> TimePU)));                                                                      \
-          /* Goertzel variables. */                                                                                                                                                                 \
-          obj -> gGain = _IQmpy2(_IQcosPU(obj -> InjVolAngleStep));                                                                                                                                           \
-          obj -> gId_Past1 = _IQ(0.0);                                                                                                                                                                   \
-          obj -> gId_Past2 = _IQ(0.0);                                                                                                                                                                   \
-                                                                                                                                                                                                    \
-          obj -> SpeedEstFiltered = _IQ(0.0);                                                                                                                                                            \
+    if (obj -> VariableInit == 1.0f)
+       {  obj -> VariableInit = 0.0f;
+
+          obj -> SignalSelectionError = 0.0f;
+          obj -> GoertzelEnable = 0.0f;
+          obj -> MagnPolarDetectFinished = 0.0f;
+          obj -> MagnPolarDetectMode = 0.0f;
+          obj -> CtrlCycleCounter = 0.0f;
+          obj -> InjSampleCounter = 0.0f;
+          obj -> GoertzelCounter = 0.0f;
+
+          obj -> InjVolHalfPrdSampleNo = obj -> InjVolHalfPrdSampleNoInit - 1.0f;
+          do {  obj -> InjVolHalfPrdSampleNo++;
+                if (obj -> InjVolHalfPrdSampleNo > obj -> InjVolHalfPrdSampleNoMaxLim)
+                   {  obj -> InjVolHalfPrdSampleNo = obj -> InjVolHalfPrdSampleNoMaxLim;
+                      obj -> InjVolMagnMaxLim = obj -> InjVolMagn;    /* Precaution to break the possible endless loop. */
+                      obj -> SignalSelectionError = 1.0f; /* DONT FORGET TO USE THIS ERROR MESSAGE. */
+                   }
+
+                /* '_IQdiv' can work for the division of two integer variables. */
+                obj -> InjVolAngleStep = ((1.0f / (2.0f * obj -> InjVolHalfPrdSampleNo));
+                obj -> InjVolFreq = (obj -> InjVolAngleStep / obj -> AngIntgGain);
+
+                obj -> InjVolMagn = ((obj -> InjVolFreq * obj -> Ld) * obj -> IhfiTarget);
+             }
+          while (obj -> InjVolMagn > obj -> InjVolMagnMaxLim);
+          // obj -> Kerror = _IQdiv( _IQmpy(obj -> InjVolMagn, _IQdiv2(obj -> Lq - obj -> Ld)), _IQmpy(obj -> InjVolFreq, _IQmpy(obj -> Lq, obj -> Ld)) );                                                                                                                                                                                            \
+
+          obj -> Kerror = ( (obj -> InjVolMagn * ((obj -> Lq - obj -> Ld) / 2.0f)) / (obj -> InjVolFreq * (obj -> Lq * obj -> Ld)) );
+          obj -> HFI_Wc = (obj -> InjVolFreq / obj -> Ratio_InjFreq_WcHFI);
+
+          /* OVERFLOW TEST FOR FIXED-POINT IMPLEMENTATION: Decrease target 'obj -> HFI_Wc'. */
+          if (MATH_TYPE == IQ_MATH)
+             {  obj -> Kp_hfi = (obj -> Kerror / obj -> HFI_Wc); /* In reality, it is 1/Kp which is small and hence safe. */
+                while ( obj -> Kp_hfi < ( 1.0f / ((float)(1UL << (30 - 24))) ) )
+                    {  obj -> Kp_hfi = (2.0f * obj -> Kp_hfi);
+                       obj -> HFI_Wc = (obj -> HFI_Wc / 2.0f);
+                       obj -> Ratio_InjFreq_WcHFI = (obj -> Ratio_InjFreq_WcHFI * 2.0f);} /* Update the ratio which is now utilized. */
+             }
+
+          obj -> Kp_hfi = (obj -> HFI_Wc / obj -> Kerror); /* CHECKED FOR OVERFLOW. */
+          obj -> Ki_hfi = (obj -> TimePU * (obj -> HFI_Wc / obj -> Ratio_WcHFI_WcLPF));
+
+          obj -> LPF_Error_Wc = (obj -> HFI_Wc * obj -> Ratio_WcHFI_WcLPF);
+          obj -> LPF_SpeedEst_Wc = obj -> HFI_Wc;
+
+          /* Current loop need 1.5 multiples and position estimator needs 2 multiples. But it is secure to use 3 as multiplier. */
+          obj -> Wait4SettleCurrent = 3.0f * (obj -> SampleNoBase * ((1.0f) / (obj -> Ratio_WcCurrent_WcHFI * obj -> HFI_Wc)));
+          obj -> Wait4SettleHFI = 3.0f * (obj -> SampleNoBase * ((1.0f) / obj -> HFI_Wc));
+
+          obj -> Intg = 0.0f;
+          obj -> aw = 0.0f;
+
+          obj -> InjVolAngle = -(obj -> InjVolAngleStep / 2.0f); /* Injection angle starts half sample positive to consider ZOH nature of the inverter. */
+          obj -> DemodAngle = -obj -> InjVolAngleStep; /* Start one sample shifted to consider the computation delay. */
+          obj -> BPF_Id_OutPast1 = 0.0f;
+          obj -> BPF_Id_OutPast2 = 0.0f;
+          obj -> BPF_Id_InPast1 = 0.0f;
+          obj -> BPF_Id_InPast2 = 0.0f;
+          obj -> BPF_Iq_OutPast1 = 0.0f;
+          obj -> BPF_Iq_OutPast2 = 0.0f;
+          obj -> BPF_Iq_InPast1 = 0.0f;
+          obj -> BPF_Iq_InPast2 = 0.0f;
+          /* Filter design. */
+          obj -> BPF_GainOut1 = ( (2.0f * cosf(obj -> InjVolAngleStep * MATH_TWO_PI )) / ((1.0f) + (obj -> BPF_Zeta * sinf(obj -> InjVolAngleStep * MATH_TWO_PI))) );
+
+        //obj -> BPF_GainOut2 = _IQdiv( ( _IQmpy(obj -> BPF_Zeta, _IQsinPU(obj -> InjVolAngleStep)) - _IQ(1.0) ), ( _IQ(1.0) + _IQmpy(obj -> BPF_Zeta, _IQsinPU(obj -> InjVolAngleStep)) ) );
+          obj -> BPF_GainOut2 = ( ( (obj -> BPF_Zeta * sinf(obj -> InjVolAngleStep * MATH_TWO_PI )) - (1.0f) ) / ( (1.0f) + (obj -> BPF_Zeta * sinf(obj -> InjVolAngleStep * MATH_TWO_PI)) ) );
+
+        //obj -> BPF_GainIn = _IQdiv( ( _IQmpy(obj -> BPF_Zeta, _IQsinPU(obj -> InjVolAngleStep)) ), ( _IQ(1.0) + _IQmpy(obj -> BPF_Zeta, _IQsinPU(obj -> InjVolAngleStep)) ) );
+          obj -> BPF_GainIn = ( ( (obj -> BPF_Zeta * sinf(obj -> InjVolAngleStep * MATH_TWO_PI)) ) / ( (1.0f) + (obj -> BPF_Zeta * sinf(obj -> InjVolAngleStep * MATH_TWO_PI)) ) );
+
+        //obj -> LPF_Error_Gain = _IQdiv(_IQmpy(obj -> LPF_Error_Wc, obj -> TimePU), (_IQ(1.0) + _IQmpy(obj -> LPF_Error_Wc, obj -> TimePU)));
+          obj -> LPF_Error_Gain = ((obj -> LPF_Error_Wc * obj -> TimePU) / ((1.0f) + (obj -> LPF_Error_Wc * obj -> TimePU)));
+
+        //obj -> LPF_SpeedEst_Gain = _IQdiv(_IQmpy(obj -> LPF_SpeedEst_Wc, obj -> TimePU), (_IQ(1.0) + _IQmpy(obj -> LPF_SpeedEst_Wc, obj -> TimePU)));
+          obj -> LPF_SpeedEst_Gain = ((obj -> LPF_SpeedEst_Wc * obj -> TimePU) / ((1.0f) + (obj -> LPF_SpeedEst_Wc * obj -> TimePU)));
+
+        /* Goertzel variables. */
+        //obj -> gGain = _IQmpy2(_IQcosPU(obj -> InjVolAngleStep));
+          obj -> gGain = (2.0f * cosf(obj -> InjVolAngleStep * MATH_TWO_PI));
+          obj -> gId_Past1 = (0.0f);
+          obj -> gId_Past2 = (0.0f);
+
+          obj -> SpeedEstFiltered = (0.0f);
        }
 
-    /* Extract the harmonic current in the Estimated Q-axis */                                                                                                                                     \
-    /* 2nd order Band-Pass Filter - Direct Form 1 */                                                                                                                                                \
-    /* Tustin discretization - Prewarped at the BPF center freqency for zero phase lag there */                                                                                                     \
-    obj -> BPF_Iq_Out = _IQmpy(obj -> BPF_GainIn, (obj -> IqFbk - obj -> BPF_Iq_InPast2)) + _IQmpy(obj -> BPF_GainOut1, obj -> BPF_Iq_OutPast1) + _IQmpy(obj -> BPF_GainOut2, obj -> BPF_Iq_OutPast2);                                      \
-                                                                                                                                                                                                    \
-    obj -> BPF_Iq_OutPast2 = obj -> BPF_Iq_OutPast1;                                                                                                                                                          \
-    obj -> BPF_Iq_OutPast1 = obj -> BPF_Iq_Out;                                                                                                                                                               \
-    obj -> BPF_Iq_InPast2 = obj -> BPF_Iq_InPast1;                                                                                                                                                            \
-    obj -> BPF_Iq_InPast1 = obj -> IqFbk;                                                                                                                                                                     \
-                                                                                                                                                                                                    \
-                                                                                                                                                                                                    \
-    obj -> BPF_Id_Out = _IQmpy(obj -> BPF_GainIn, (obj -> IdFbk - obj -> BPF_Id_InPast2)) + _IQmpy(obj -> BPF_GainOut1, obj -> BPF_Id_OutPast1) + _IQmpy(obj -> BPF_GainOut2, obj -> BPF_Id_OutPast2);                                      \
-                                                                                                                                                                                                    \
-    obj -> BPF_Id_OutPast2 = obj -> BPF_Id_OutPast1;                                                                                                                                                          \
-    obj -> BPF_Id_OutPast1 = obj -> BPF_Id_Out;                                                                                                                                                               \
-    obj -> BPF_Id_InPast2 = obj -> BPF_Id_InPast1;                                                                                                                                                            \
-    obj -> BPF_Id_InPast1 = obj -> IdFbk;                                                                                                                                                                     \
-                                                                                                                                                                                                    \
-    /* By Low-pass Filtering, Extract the DC Error due to Estimated and Actual Axis Mismatch  */                                                                                                    \
-    /* 1st order Low-Pass Filter - Backward Euler discretization */                                                                                                                                 \
-    obj -> LPF_Error_Out += _IQmpy(obj -> LPF_Error_Gain, (_IQmpy(obj -> BPF_Iq_Out, _IQsinPU(obj -> DemodAngle)) - obj -> LPF_Error_Out));                                                                                  \
-                                                                                                                                                                                                    \
-    /* PI Controller */                                                                                                                                                                             \
-    obj -> Err = _IQmpy(obj -> Kp_hfi, obj -> LPF_Error_Out);                                                                                                                                                      \
-    obj -> Intg += _IQmpy(obj -> Ki_hfi, (obj -> Err - obj -> aw));                                                                                                                                                     \
-    obj -> PIout = obj -> ff_SpeedRef +  (obj -> Err + obj -> Intg);                                                                                                                                                    \
-    obj -> SpeedEst = _IQsat( obj -> PIout, obj -> SpeedEstMaxLim, (-obj -> SpeedEstMaxLim) );                                                                                                                          \
-    obj -> aw = (obj -> PIout - obj -> SpeedEst);                                                                                                                                                                  \
-                                                                                                                                                                                                    \
-    /* Calculate Estimated Electrical Angle */                                                                                                                                                      \
-    obj -> ElecThetaEst += _IQmpy(obj -> AngIntgGain, obj -> SpeedEst);                                                                                                                                            \
-    if (obj -> ElecThetaEst > _IQ(1.0))                                                                                                                                                                  \
-       {  obj -> ElecThetaEst -= _IQ(1.0);}                                                                                                                                                              \
-    if (obj -> ElecThetaEst < _IQ(0.0))                                                                                                                                                                  \
-       {  obj -> ElecThetaEst += _IQ(1.0);}                                                                                                                                                              \
-                                                                                                                                                                                                    \
-    /* Filter the Speed Estimation */                                                                                                                                                               \
-    /* 1st order Low-Pass Filter - Backward Euler discretization */                                                                                                                                 \
-    obj -> SpeedEstFiltered += _IQmpy(obj -> LPF_SpeedEst_Gain, (obj -> Intg - obj -> SpeedEstFiltered));                                                                                                               \
-                                                                                                                                                                                                    \
-    /* Injected High-Frequency Signal Generation */                                                                                                                                                 \
-    obj -> InjVolAngle = (obj -> InjSampleCounter * obj -> InjVolAngleStep) + _IQdiv2(obj -> InjVolAngleStep);                                                                                                          \
-    if (obj -> InjVolAngle > _IQ(1.0))                                                                                                                                                                   \
-       {  obj -> InjVolAngle -= _IQ(1.0);}                                                                                                                                                               \
-    /* Demodulation angle */                                                                                                                                                                        \
-    obj -> DemodAngle = (obj -> InjSampleCounter * obj -> InjVolAngleStep);                                                                                                                                        \
-    if (obj -> DemodAngle > _IQ(1.0))                                                                                                                                                                    \
-       {  obj -> DemodAngle -= _IQ(1.0);}                                                                                                                                                                \
-    /* Increase the counter and then reset it when it reaches sample size. */                                                                                                                       \
-    obj -> InjSampleCounter++;                                                                                                                                                                           \
-    if ( obj -> InjSampleCounter == (2*obj -> InjVolHalfPrdSampleNo) )                                                                                                                                        \
-       {obj -> InjSampleCounter = 0;}                                                                                                                                                                    \
-                                                                                                                                                                                                    \
-    /* If 'obj -> Udc' is too low, division may cause overflow and amplify noise. Coordinate this part with the allowed min DC-link voltage. */                                                          \
-    obj -> InjVolMagn_UdcComp = obj -> InjVolMagn;                                                                                                                                                            \
-    if (obj -> Udc > obj -> UdcCompMinVol)                                                                                                                                                                    \
-       {  obj -> InjVolMagn_UdcComp = _IQdiv(obj -> InjVolMagn, obj -> Udc);} /* Another option is to use close-loop regulation of injection current amplitude, maybe using Goertzel. */                           \
-    obj -> InjVol = _IQmpy(obj -> InjVolMagn_UdcComp, _IQcosPU(obj -> InjVolAngle));                                                                                                                               \
-                                                                                                                                                                                                    \
-                                                                                                                                                                                                    \
-                                                                                                                                                                                                    \
-    /* Magnet Polarity Detection */                                                                                                                                                                 \
-    if (obj -> MagnPolarDetectFinished == FALSE)                                                                                                                                                         \
-       {  obj -> CtrlCycleCounter++;                                                                                                                                                                     \
-                                                                                                                                                                                                    \
-          if ((obj -> CtrlCycleCounter >  obj -> Wait4SettleHFI) && (obj -> MagnPolarDetectMode == 0))                                                                                                             \
-             {  obj -> MagnPolarDetectMode = 1;                                                                                                                                                          \
-                obj -> CtrlCycleCounter = 0;}                                                                                                                                                            \
-                                                                                                                                                                                                    \
-          if ((obj -> CtrlCycleCounter >  obj -> Wait4SettleCurrent) && (obj -> MagnPolarDetectMode > 0))                                                                                                          \
-             {  obj -> GoertzelEnable = TRUE;}                                                                                                                                                           \
-                                                                                                                                                                                                    \
-          if (obj -> GoertzelEnable == TRUE)                                                                                                                                                             \
-             {  obj -> gId_Now = _IQmpy(obj -> IdFbk, _IQmpy2(obj -> InjVolAngleStep)) + _IQmpy(obj -> gId_Past1, obj -> gGain) - obj -> gId_Past2;                                                                               \
-                obj -> gId_Past2 = obj -> gId_Past1;                                                                                                                                                          \
-                obj -> gId_Past1 = obj -> gId_Now;                                                                                                                                                            \
-                obj -> GoertzelCounter++;                                                                                                                                                                \
-                                                                                                                                                                                                    \
-                if (obj -> GoertzelCounter == 2*obj -> InjVolHalfPrdSampleNo)                                                                                                                                 \
-                   {  obj -> InjIdMagn = _IQsqrt( _IQmpy(obj -> gId_Past1, obj -> gId_Past1) - _IQmpy(_IQmpy(obj -> gId_Past1, obj -> gGain), obj -> gId_Past2) + _IQmpy(obj -> gId_Past2, obj -> gId_Past2) );                             \
-                                                                                                                                                                                                    \
-                      obj -> gId_Past1 = _IQ(0.0);                                                                                                                                                       \
-                      obj -> gId_Past2 = _IQ(0.0);                                                                                                                                                       \
-                      obj -> GoertzelCounter = 0;                                                                                                                                                        \
-                      obj -> CtrlCycleCounter = 0;                                                                                                                                                       \
-                      obj -> GoertzelEnable = FALSE;                                                                                                                                                     \
-                                                                                                                                                                                                    \
-                      if (obj -> MagnPolarDetectMode == 1)                                                                                                                                               \
-                         {  obj -> IdMagn_MPD_Mode1 = obj -> InjIdMagn;                                                                                                                                       \
-                            obj -> MagnPolarDetectMode = 2;}                                                                                                                                             \
-                      else if (obj -> MagnPolarDetectMode == 2)                                                                                                                                          \
-                         {  obj -> IdMagn_MPD_Mode2 = obj -> InjIdMagn;                                                                                                                                       \
-                            obj -> MagnPolarDetectMode = 0;                                                                                                                                              \
-                                                                                                                                                                                                    \
-                            obj -> MagnPolarDetectFinished = TRUE;                                                                                                                                       \
-                                                                                                                                                                                                    \
-                            if (obj -> IdMagn_MPD_Mode1 > obj -> IdMagn_MPD_Mode2)                                                                                                                            \
-                               {  obj -> ElecThetaEst += _IQ(0.5);}                                                                                                                                      \
-                                                                                                                                                                                                    \
-                            if (obj -> ElecThetaEst > _IQ(1.0))                                                                                                                                          \
-                               {  obj -> ElecThetaEst -= _IQ(1.0);}                                                                                                                                      \
-                            if (obj -> ElecThetaEst < _IQ(0.0))                                                                                                                                          \
-                               {  obj -> ElecThetaEst += _IQ(1.0);}                                                                                                                                      \
-                          }                                                                                                                                                                         \
-                     }                                                                                                                                                                              \
-               }                                                                                                                                                                                    \
+    /* Extract the harmonic current in the Estimated Q-axis */
+    /* 2nd order Band-Pass Filter - Direct Form 1 */
+    /* Tustin discretization - Prewarped at the BPF center freqency for zero phase lag there */
+  //obj -> BPF_Iq_Out = _IQmpy(obj -> BPF_GainIn, (obj -> IqFbk - obj -> BPF_Iq_InPast2)) + _IQmpy(obj -> BPF_GainOut1, obj -> BPF_Iq_OutPast1) + _IQmpy(obj -> BPF_GainOut2, obj -> BPF_Iq_OutPast2);
+    obj -> BPF_Iq_Out = (obj -> BPF_GainIn * (obj -> IqFbk - obj -> BPF_Iq_InPast2)) + (obj -> BPF_GainOut1 * obj -> BPF_Iq_OutPast1) + (obj -> BPF_GainOut2 * obj -> BPF_Iq_OutPast2);
+
+    obj -> BPF_Iq_OutPast2 = obj -> BPF_Iq_OutPast1;
+    obj -> BPF_Iq_OutPast1 = obj -> BPF_Iq_Out;
+    obj -> BPF_Iq_InPast2 = obj -> BPF_Iq_InPast1;
+    obj -> BPF_Iq_InPast1 = obj -> IqFbk;
+
+  //obj -> BPF_Id_Out = _IQmpy(obj -> BPF_GainIn, (obj -> IdFbk - obj -> BPF_Id_InPast2)) + _IQmpy(obj -> BPF_GainOut1, obj -> BPF_Id_OutPast1) + _IQmpy(obj -> BPF_GainOut2, obj -> BPF_Id_OutPast2);
+    obj -> BPF_Id_Out = (obj -> BPF_GainIn * (obj -> IdFbk - obj -> BPF_Id_InPast2)) + (obj -> BPF_GainOut1 * obj -> BPF_Id_OutPast1) + (obj -> BPF_GainOut2 * obj -> BPF_Id_OutPast2);
+
+    obj -> BPF_Id_OutPast2 = obj -> BPF_Id_OutPast1;
+    obj -> BPF_Id_OutPast1 = obj -> BPF_Id_Out;
+    obj -> BPF_Id_InPast2 = obj -> BPF_Id_InPast1;
+    obj -> BPF_Id_InPast1 = obj -> IdFbk;
+
+  /* By Low-pass Filtering, Extract the DC Error due to Estimated and Actual Axis Mismatch  */
+  /* 1st order Low-Pass Filter - Backward Euler discretization */
+  //obj -> LPF_Error_Out += _IQmpy(obj -> LPF_Error_Gain, (_IQmpy(obj -> BPF_Iq_Out, _IQsinPU(obj -> DemodAngle)) - obj -> LPF_Error_Out));
+    obj -> LPF_Error_Out += (obj -> LPF_Error_Gain * ((obj -> BPF_Iq_Out * sinf(obj -> DemodAngle * MATH_TWO_PI)) - obj -> LPF_Error_Out));
+
+    /* PI Controller */
+  //obj -> Err = _IQmpy(obj -> Kp_hfi, obj -> LPF_Error_Out);
+    obj -> Err = (obj -> Kp_hfi * obj -> LPF_Error_Out);
+
+  //obj -> Intg += _IQmpy(obj -> Ki_hfi, (obj -> Err - obj -> aw));
+    obj -> Intg += (obj -> Ki_hfi * (obj -> Err - obj -> aw));
+
+  //obj -> PIout = obj -> ff_SpeedRef +  (obj -> Err + obj -> Intg);
+    obj -> PIout = obj -> ff_SpeedRef +  (obj -> Err + obj -> Intg);
+
+  //obj -> SpeedEst = _IQsat( obj -> PIout, obj -> SpeedEstMaxLim, (-obj -> SpeedEstMaxLim) );
+    obj -> SpeedEst = MATH_sat( obj -> PIout, obj -> SpeedEstMaxLim, (-obj -> SpeedEstMaxLim) );
+
+    obj -> aw = (obj -> PIout - obj -> SpeedEst);
+
+    /* Calculate Estimated Electrical Angle */
+  //obj -> ElecThetaEst += _IQmpy(obj -> AngIntgGain, obj -> SpeedEst);
+    obj -> ElecThetaEst += (obj -> AngIntgGain * obj -> SpeedEst);
+
+  //if (obj -> ElecThetaEst > _IQ(1.0))
+    if (obj -> ElecThetaEst > (1.0f))
+       {  obj -> ElecThetaEst -= (1.0f);}
+    if (obj -> ElecThetaEst < (0.0f))
+       {  obj -> ElecThetaEst += (1.0f);}
+
+    /* Filter the Speed Estimation */
+    /* 1st order Low-Pass Filter - Backward Euler discretization */
+    obj -> SpeedEstFiltered += (obj -> LPF_SpeedEst_Gain * (obj -> Intg - obj -> SpeedEstFiltered));
+
+    /* Injected High-Frequency Signal Generation */
+  //obj -> InjVolAngle = (obj -> InjSampleCounter * obj -> InjVolAngleStep) + _IQdiv2(obj -> InjVolAngleStep);
+    obj -> InjVolAngle = (obj -> InjSampleCounter * obj -> InjVolAngleStep) + (obj -> InjVolAngleStep / 2.0f);
+    if (obj -> InjVolAngle > (1.0f))
+       {  obj -> InjVolAngle -= (1.0f);}
+    /* Demodulation angle */
+    obj -> DemodAngle = (obj -> InjSampleCounter * obj -> InjVolAngleStep);
+    if (obj -> DemodAngle > (1.0f))
+       {  obj -> DemodAngle -= (1.0f);}
+    /* Increase the counter and then reset it when it reaches sample size. */
+    obj -> InjSampleCounter++;
+    if ( obj -> InjSampleCounter == (2.0f * obj -> InjVolHalfPrdSampleNo) )
+       {obj -> InjSampleCounter = 0.0f;}
+
+    /* If 'obj -> Udc' is too low, division may cause overflow and amplify noise. Coordinate this part with the allowed min DC-link voltage. */
+    obj -> InjVolMagn_UdcComp = obj -> InjVolMagn;
+    if (obj -> Udc > obj -> UdcCompMinVol)
+       {  obj -> InjVolMagn_UdcComp = (obj -> InjVolMagn / obj -> Udc);} /* Another option is to use close-loop regulation of injection current amplitude, maybe using Goertzel. */
+    obj -> InjVol = (obj -> InjVolMagn_UdcComp * cosf(obj -> InjVolAngle * MATH_TWO_PI));
+
+
+
+    /* Magnet Polarity Detection */
+  //if (obj -> MagnPolarDetectFinished == FALSE)
+    if (obj -> MagnPolarDetectFinished == 0.0f)
+       {  obj -> CtrlCycleCounter++;
+
+          if ((obj -> CtrlCycleCounter >  obj -> Wait4SettleHFI) && (obj -> MagnPolarDetectMode == 0.0f))
+             {  obj -> MagnPolarDetectMode = 1.0f;
+                obj -> CtrlCycleCounter = 0.0f;}
+
+          if ((obj -> CtrlCycleCounter >  obj -> Wait4SettleCurrent) && (obj -> MagnPolarDetectMode > 0.0f))
+             {  obj -> GoertzelEnable = 1.0f;}
+
+          if (obj -> GoertzelEnable == 1.0f)
+             {  obj -> gId_Now = (obj -> IdFbk * (2.0f * obj -> InjVolAngleStep)) + (obj -> gId_Past1 * obj -> gGain) - obj -> gId_Past2;
+                obj -> gId_Past2 = obj -> gId_Past1;
+                obj -> gId_Past1 = obj -> gId_Now;
+                obj -> GoertzelCounter++;
+
+                if (obj -> GoertzelCounter == 2.0f * obj -> InjVolHalfPrdSampleNo)
+                   {  obj -> InjIdMagn = sqrtf( (obj -> gId_Past1 * obj -> gId_Past1) - ((obj -> gId_Past1 * obj -> gGain) * obj -> gId_Past2) + (obj -> gId_Past2 * obj -> gId_Past2) );
+
+                      obj -> gId_Past1 = (0.0f);
+                      obj -> gId_Past2 = (0.0f);
+                      obj -> GoertzelCounter = 0.0f;
+                      obj -> CtrlCycleCounter = 0.0f;
+                      obj -> GoertzelEnable = 0.0f;
+
+                      if (obj -> MagnPolarDetectMode == 1.0f)
+                         {  obj -> IdMagn_MPD_Mode1 = obj -> InjIdMagn;
+                            obj -> MagnPolarDetectMode = 2.0f;}
+                      else if (obj -> MagnPolarDetectMode == 2.0f)
+                         {  obj -> IdMagn_MPD_Mode2 = obj -> InjIdMagn;
+                            obj -> MagnPolarDetectMode = 0.0f;
+
+                            obj -> MagnPolarDetectFinished = 1.0f;
+
+                            if (obj -> IdMagn_MPD_Mode1 > obj -> IdMagn_MPD_Mode2)
+                               {  obj -> ElecThetaEst += (0.5f);}
+
+                            if (obj -> ElecThetaEst > (1.0f))
+                               {  obj -> ElecThetaEst -= (1.0f);}
+                            if (obj -> ElecThetaEst < (0.0f))
+                               {  obj -> ElecThetaEst += (1.0f);}
+                          }
+                     }
+               }
        }
 
 

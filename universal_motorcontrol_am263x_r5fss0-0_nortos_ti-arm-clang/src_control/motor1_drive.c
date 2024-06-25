@@ -47,6 +47,10 @@
 #include "motor1_drive.h"
 #include <mathlib/trig/ti_arm_trig.h>
 
+#define   MATH_TYPE      FLOAT_MATH
+#define   FLOAT_MATH     1.0f
+#define   IQ_MATH        0.0f
+
 
 // the globals
 
