@@ -2008,6 +2008,44 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 
             }
 
+            else if( obj -> enableHFI1 == TRUE)
+            {
+                 if(obj -> enableHFI2 == TRUE)
+                 {
+
+                    // buraya geri donecegiz.
+
+                    obj->enableSpeedCtrl = FALSE;
+                    obj->enableCurrentCtrl = TRUE;
+                    obj-> angleFOC_rad  = 0.0f;
+
+
+                    TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+                    ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+
+                  }
+                  else
+                  {
+                    obj->enableSpeedCtrl = FALSE;
+                    obj->enableCurrentCtrl = FALSE;
+                    obj-> angleFOC_rad  = 0.0f;
+
+                    obj->IsRef_A = 0.0f;
+                    obj->Idq_out_A.value[0] = 0.0f;
+                    obj->Idq_out_A.value[1] = 0.0f;
+
+                    TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+                    ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+
+                    obj->Vdq_ffwd_V.value[0] = 0.0f;
+                    obj->Vdq_ffwd_V.value[1] = 0.0f;
+
+                    obj->Vdq_out_V.value[0] = 0.0f;
+                    obj->Vdq_out_V.value[1] = 0.0f;
+
+                   }
+              }
+
             else
             {
             obj->stateRunTimeCnt = 0;
@@ -2476,6 +2514,107 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 
         }
 
+    }
+
+    if(obj -> enableHFI1 == TRUE)
+    {
+        if  (obj -> enableHFI2 == TRUE)
+        {
+
+            // Provide inputs.
+                // Sensorless_IPMSM_HFI.IdFbk = Fbks.Id;
+                // Sensorless_IPMSM_HFI.IqFbk = Fbks.Iq;
+                // Sensorless_IPMSM_HFI.Udc = Fbks.Vdc;
+                // Sensorless_IPMSM_HFI.ff_SpeedRef = Refs.SpeedRamped;
+
+           // TO DO LIST: TIMER COUNTER FOR Wait4SettleHFI, Wait4SettleCurrent
+
+           // Execute.
+                // SENSORLESS_IPMSM_HFI_MACRO(Sensorless_IPMSM_HFI)
+
+            HFI_run(obj -> hfi_step2_H, obj->Idq_in_A.value[0], obj->Idq_in_A.value[1], obj->adcData.VdcBus_V, obj -> speed_int_Hz );
+
+            // Assign output.
+                // Refs.Vinject = Sensorless_IPMSM_HFI.InjVol;
+                // Fbks.Speed = Sensorless_IPMSM_HFI.SpeedEstFiltered;
+                // Fbks.ElecTheta = Sensorless_IPMSM_HFI.ElecThetaEst;
+
+            // Assign output.
+            Refs.Vinject = obj_hfi -> InjVol;
+            Fbks.Speed = obj_hfi -> SpeedEstFiltered;
+            Fbks.ElecTheta = obj_hfi -> ElecThetaEst;
+
+            // Subtract the signal at injection frequency from the feedback.
+                // Fbks.Id -= Sensorless_IPMSM_HFI.BPF_Id_Out;
+                // Fbks.Iq -= Sensorless_IPMSM_HFI.BPF_Iq_Out;
+
+            // Subtract the signal at injection frequency from the feedback.
+
+                   obj -> Idq_in_A.value[0] -= obj_hfi -> BPF_Id_Out;
+                   obj -> Idq_in_A.value[1] -= obj_hfi -> BPF_Iq_Out;
+
+
+            // Current loop tuning update.
+            if (SensorlessSpdFbk_CurrentControllerUpdate == TRUE)
+            {  SensorlessSpdFbk_CurrentControllerUpdate = FALSE;
+
+               idq_ctrl1.Kp_d = _IQmpy( _IQmpy(_IQmpy(Sensorless_IPMSM_HFI.Ratio_WcCurrent_WcHFI, Sensorless_IPMSM_HFI.HFI_Wc), _IQsinPU(idq_ctrl1.PhaseMargin)), Sensorless_IPMSM_HFI.Ld);
+               idq_ctrl1.Kp_q = _IQmpy( _IQmpy(_IQmpy(Sensorless_IPMSM_HFI.Ratio_WcCurrent_WcHFI, Sensorless_IPMSM_HFI.HFI_Wc), _IQsinPU(idq_ctrl1.PhaseMargin)), Sensorless_IPMSM_HFI.Lq);
+
+               idq_ctrl1.Ki_d = _IQmpy( _IQmpy( _IQdiv(Sensorless_IPMSM_HFI.LPF_Error_Wc, _IQsinPU(idq_ctrl1.PhaseMargin)), _IQcosPU(idq_ctrl1.PhaseMargin) ), Sensorless_IPMSM_HFI.TimePU );
+               idq_ctrl1.Ki_q = idq_ctrl1.Ki_d;
+            }
+
+
+            // Determine the max voltage demand from current controller. Aim is to leave room for 'Refs.Vinject'.
+               idq_ctrl1.Vmax = _IQsqrt( _IQmpy(idq_ctrl1.Vmax_Init, idq_ctrl1.Vmax_Init) - _IQmpy( Sensorless_IPMSM_HFI.InjVolMagn_UdcComp, (Sensorless_IPMSM_HFI.InjVolMagn_UdcComp + _IQmpy2(_IQabs(idq_ctrl1.Vd))) ) );
+
+
+        /*
+            // Magnet polarity detection.
+               if (Sensorless_IPMSM_HFI.MagnPolarDetectFinished == FALSE)
+               {     if (Sensorless_IPMSM_HFI.MagnPolarDetectMode == 1)
+                      { Refs.IdMagnPolarDetect = _IQ(-0.5);}
+                     else if (Sensorless_IPMSM_HFI.MagnPolarDetectMode == 2)
+                      { Refs.IdMagnPolarDetect = _IQ(0.5);}
+                     else
+                      { Refs.IdMagnPolarDetect = _IQ(0.0);}
+                }
+                else
+                { Refs.IdMagnPolarDetect = _IQ(0.0);}
+
+
+                // Angle and speed estimation errors.
+                ElecThetaEstError = speed1.ElecTheta - Sensorless_IPMSM_HFI.ElecThetaEst;
+                if (ElecThetaEstError > _IQ(0.5))
+                   {  ElecThetaEstError -=_IQ(1.0);}
+                else if (ElecThetaEstError < _IQ(-0.5))
+                   { ElecThetaEstError +=_IQ(1.0);}
+                SpeedEstError = speed1.Speed - Sensorless_IPMSM_HFI.SpeedEstFiltered;
+         */
+
+           // Magnet polarity detection.
+           if (obj_hfi -> MagnPolarDetectFinished == FALSE)
+              {  if (obj_hfi -> MagnPolarDetectMode == 1)
+                    { Refs.IdMagnPolarDetect = _IQ(-0.5);}
+                 else if (obj_hfi -> MagnPolarDetectMode == 2)
+                    { Refs.IdMagnPolarDetect = _IQ(0.5);}
+                 else
+                    { Refs.IdMagnPolarDetect = _IQ(0.0);}
+               }
+            else
+               { Refs.IdMagnPolarDetect = _IQ(0.0);}
+
+            // Angle and speed estimation errors.
+            ElecThetaEstError = speed1.ElecTheta - Sensorless_IPMSM_HFI.ElecThetaEst;
+            if (ElecThetaEstError > _IQ(0.5))
+               {  ElecThetaEstError -=_IQ(1.0);}
+            else if (ElecThetaEstError < _IQ(-0.5))
+               { ElecThetaEstError +=_IQ(1.0);}
+            SpeedEstError = speed1.Speed - obj_hfi -> SpeedEstFiltered;
+
+
+        }
     }
 
 
