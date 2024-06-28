@@ -80,9 +80,11 @@ extern "C"
 
 #include "vs_freq.h"
 #include "angle_gen.h"
+
 #include "selfcommm.h"
 #include "satindest.h"
 #include "fluxlinest.h"
+#include "hfi.h"
 #include "volt_recons.h"
 
 
@@ -510,6 +512,10 @@ typedef struct _MOTOR_Vars_t_
     Bool enableFluxLinEst1;
     Bool enableFluxLinEst2;
 
+    Bool enableHFI1;
+    Bool enableHFI2;
+
+
 #if defined(MOTOR1_FILTERIS)
     bool flagEnableFilterIs;
 #endif  // MOTOR1_FILTERIS
@@ -796,6 +802,7 @@ typedef struct _MOTOR_Vars_t_
     SELFCOMMM_Handle self_comm_step1_H;
     SATINDEST_Handle satindest_step4_H;
     FLUXLINEST_Handle fluxlinest_step6_H;
+    HFI_Handle hfi_step2_H;
 
 //    float32_t oneOverDcBus_invV;    // The DC Bus inverse, 1/V
 

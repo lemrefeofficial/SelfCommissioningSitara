@@ -74,6 +74,24 @@ void HFI_setParams(HFI_Handle handle)
 {
     HFI_Obj *obj = (HFI_Obj *)handle;
 
+    obj -> VariableInit = 1.0f;
+    obj -> InjVolHalfPrdSampleNoInit = 5.0f;
+    obj -> InjVolHalfPrdSampleNoMaxLim = 10.0f;
+    obj -> SampleNoBase = Fs/BASE_FREQ;
+    obj -> InjVolMagnMaxLim = (0.5f);
+    obj -> IhfiTarget = (0.1f);
+    obj -> UdcCompMinVol = (0.2f); // per-unit
+    obj -> Ratio_InjFreq_WcHFI = (10.0f); // select 10
+    obj -> Ratio_WcHFI_WcLPF = (3.0f); // select 3
+    obj -> Ratio_WcCurrent_WcHFI = (3.0f); // max is 3.
+    obj -> SpeedEstMaxLim = (1.0f);
+    obj -> BPF_Zeta = (0.3f); // select between 0.3-0.5
+    obj -> AngIntgGain = _IQ(BASE_FREQ*Ts); // No need for '2*PI' multiplier because we always use cosPU or sinPU.
+    obj -> TimePU = _IQ(2*PI*BASE_FREQ*Ts);
+    obj -> Ld = (0.16f);
+    obj -> Lq = (0.32f);
+
+
 
     obj -> VariableInit = 1.0f;
     obj -> AveragingSize = 20000;

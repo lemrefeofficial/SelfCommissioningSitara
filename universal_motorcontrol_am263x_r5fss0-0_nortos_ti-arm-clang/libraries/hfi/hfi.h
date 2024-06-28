@@ -63,26 +63,23 @@ extern "C"
 #include <math.h>
 #include "math_types.h"
 
-#define MtrType_INDUCTION               (1)
-#define MtrType_IPMSM                   (2)
-#define MtrType_SYNRM                   (3)
 
 /*************************************************************************************************************************************************************************************/
 // Defines the HFI object
 /*************************************************************************************************************************************************************************************/
 typedef struct _HFI_Obj_
 {
-    float32_t VariableInit;                 // Data: TRUE/FALSE. Variable initialization is enabled.
-    float32_t SignalSelectionError;          // Data: TRUE/FALSE. Injection signal cannot be selected under the limitation of min injection frequency and target current amplitude.
-    float32_t GoertzelEnable;                // Data: TRUE/FALSE. High-frequency current amplitude measurement algorithm for initial postion detection is enabled.
-    float32_t MagnPolarDetectFinished;       // Data: TRUE/FALSE. Magnet polarity is detected. Initial postion detection is achieved.
-    float32_t MagnPolarDetectMode;           // Data: Number. Meaning 0: Idle mode, 1: Negative Id, 2: Positive Id
-    float32_t CtrlCycleCounter;              // Data: Number. Counter for ctrl entry in this module, used for timing in initial rotor postion detection.
-    float32_t InjSampleCounter;              // Data: Number. Counter for injected sample numbers of sinusoidal injection voltage.
-    float32_t GoertzelCounter;               // Data: Number. Counter for samples used in High-frequency current amplitude measurement algorithm.
-    float32_t Wait4SettleHFI;                // Data: Number. Samples to wait for HFI algorithm to settle.
-    float32_t Wait4SettleCurrent;            // Data: Number. Samples to wait for current loop to settle.
-    float32_t InjVolHalfPrdSampleNo;         // Data: Number. Half of sample number of injected voltage in its one period - currently utilized value.
+    float32_t VariableInit;                     // Data: TRUE/FALSE. Variable initialization is enabled.
+    float32_t SignalSelectionError;             // Data: TRUE/FALSE. Injection signal cannot be selected under the limitation of min injection frequency and target current amplitude.
+    float32_t GoertzelEnable;                   // Data: TRUE/FALSE. High-frequency current amplitude measurement algorithm for initial postion detection is enabled.
+    float32_t MagnPolarDetectFinished;          // Data: TRUE/FALSE. Magnet polarity is detected. Initial postion detection is achieved.
+    float32_t MagnPolarDetectMode;              // Data: Number. Meaning 0: Idle mode, 1: Negative Id, 2: Positive Id
+    float32_t CtrlCycleCounter;                 // Data: Number. Counter for ctrl entry in this module, used for timing in initial rotor postion detection.
+    float32_t InjSampleCounter;                 // Data: Number. Counter for injected sample numbers of sinusoidal injection voltage.
+    float32_t GoertzelCounter;                  // Data: Number. Counter for samples used in High-frequency current amplitude measurement algorithm.
+    float32_t Wait4SettleHFI;                   // Data: Number. Samples to wait for HFI algorithm to settle.
+    float32_t Wait4SettleCurrent;               // Data: Number. Samples to wait for current loop to settle.
+    float32_t InjVolHalfPrdSampleNo;            // Data: Number. Half of sample number of injected voltage in its one period - currently utilized value.
     float32_t InjVolAngleStep;                  // Data: Per-Unit. Angle steps to increment 'InjVolAngle'.
     float32_t InjVolMagn_UdcComp;               // Data: Per-Unit. Injected high-frequency voltage magnitude, DC-link voltage compensated.
     float32_t InjVolMagn;                       // Data: Per-Unit. Injected high-frequency voltage magnitude.
@@ -124,9 +121,9 @@ typedef struct _HFI_Obj_
     float32_t IdMagn_MPD_Mode1;                 // Data: Per-Unit. Amplitude of Id feedback due to high-frequency voltage injection - at Mode 1.
     float32_t IdMagn_MPD_Mode2;                 // Data: Per-Unit. Amplitude of Id feedback due to high-frequency voltage injection - at Mode 2.
 
-    float32_t InjVolHalfPrdSampleNoInit;     // Parameter: Number. Half of sample number of injected voltage in its one period - initial value.
-    float32_t InjVolHalfPrdSampleNoMaxLim;   // Parameter: Number. Allowed max value for injected voltage half period sample number i.e. minimum injection frequency.
-    float32_t SampleNoBase;                  // Parameter: Number. Sample number in one base period: Fsample/Fbase.
+    float32_t InjVolHalfPrdSampleNoInit;        // Parameter: Number. Half of sample number of injected voltage in its one period - initial value.
+    float32_t InjVolHalfPrdSampleNoMaxLim;      // Parameter: Number. Allowed max value for injected voltage half period sample number i.e. minimum injection frequency.
+    float32_t SampleNoBase;                     // Parameter: Number. Sample number in one base period: Fsample/Fbase.
     float32_t InjVolMagnMaxLim;                 // Parameter: Per-Unit. Allowed max value for injected voltage magnitude.
     float32_t IhfiTarget;                       // Parameter: Per-Unit. Target current due to high-frequency voltage injection
     float32_t UdcCompMinVol;                    // Parameter: Per-Unit. Min Dc-link voltage for DC-link conpensation.

@@ -97,6 +97,8 @@ __attribute__ ((section("foc_data"))) SATINDEST_Obj    satindest_step4_M1;
 
 __attribute__ ((section("foc_data"))) FLUXLINEST_Obj    fluxlinest_step6_M1;
 
+__attribute__ ((section("foc_data"))) HFI_Obj    hfi_step2_M1;
+
 #if(DMC_BUILDLEVEL == DMC_LEVEL_2)
 //!< the Vs per Freq object for open loop control
 __attribute__ ((section("foc_data"))) VS_FREQ_Obj    VsFreq_M1;
@@ -332,8 +334,11 @@ void initMotor1CtrlParameters(MOTOR_Handle handle)
     obj->enableSatIndEst1= FALSE;
     obj->enableSatIndEst2= FALSE;
 
-    obj->enableFluxLinEst1= TRUE;
+    obj->enableFluxLinEst1= FALSE;
     obj->enableFluxLinEst2= FALSE;
+
+    obj->enableHFI= TRUE;
+    obj->enableHFI= FALSE;
 
     obj->IsSet_A = 0.0f;
 
@@ -474,7 +479,10 @@ void initMotor1CtrlParameters(MOTOR_Handle handle)
     SATINDEST_setParams(obj->satindest_step4_H);
 
     obj->fluxlinest_step6_H = FLUXLINEST_init(&fluxlinest_step6_M1, sizeof(fluxlinest_step6_M1));
-        FLUXLINEST_setParams(obj->fluxlinest_step6_H);
+    FLUXLINEST_setParams(obj->fluxlinest_step6_H);
+
+    obj->hfi_step2_H = HFI_init(&hfi_step2_M1, sizeof(hfi_step2_M1));
+    HFI_setParams(obj->hfi_step2_H);
 
 #if(DMC_BUILDLEVEL <= DMC_LEVEL_3)
     obj->Idq_set_A.value[0] = 0.0f;
@@ -1202,6 +1210,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
     SELFCOMMM_Obj *obj_self = (SELFCOMMM_Obj *)(obj->self_comm_step1_H);
     SATINDEST_Obj *obj_satindest = (SATINDEST_Obj *)(obj->satindest_step4_H);
     FLUXLINEST_Obj *obj_fluxlinest = (FLUXLINEST_Obj *)(obj->fluxlinest_step6_H);
+    HFI_Obj *obj_hfi = (HFI_Obj *)(obj->hfi_step2_H);
 
     // acknowledge the ADC interrupt
     HAL_ackMtr1ADCInt();
@@ -1866,8 +1875,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
                                   //               obj->Vdq_out_V.value[0] = 0.0f;
                                     //             obj->Vdq_out_V.value[1] = 0.0f;
 
-        if((obj->stateRunTimeCnt > obj->alignTimeDelay) ||
-                 (obj->flagEnableAlignment == FALSE))
+        if((obj->stateRunTimeCnt > obj->alignTimeDelay) || (obj->flagEnableAlignment == FALSE))
         {
             if(obj->enableSelf_comm1 == TRUE)
             {
@@ -1966,7 +1974,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
             {
                 if(obj -> enableSatIndEst2 == TRUE)
                 {
-                    // BURAYA AKTIF EDECEKLERIMI YAZACAGIM
+
 
                     obj->enableSpeedCtrl = FALSE;
                     obj->enableCurrentCtrl = TRUE;
