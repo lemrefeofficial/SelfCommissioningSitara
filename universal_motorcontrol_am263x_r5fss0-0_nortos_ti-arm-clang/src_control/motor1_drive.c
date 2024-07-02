@@ -47,9 +47,9 @@
 #include "motor1_drive.h"
 #include <mathlib/trig/ti_arm_trig.h>
 
-#define   MATH_TYPE      FLOAT_MATH
-#define   FLOAT_MATH     1.0f
-#define   IQ_MATH        0.0f
+//#define   MATH_TYPE      FLOAT_MATH
+//#define   FLOAT_MATH     1.0f
+//#define   IQ_MATH        0.0f
 
 
 // the globals
@@ -337,10 +337,14 @@ void initMotor1CtrlParameters(MOTOR_Handle handle)
     obj->enableFluxLinEst1= FALSE;
     obj->enableFluxLinEst2= FALSE;
 
-    obj->enableHFI= TRUE;
-    obj->enableHFI= FALSE;
+    obj->enableHFI1= TRUE;
+    obj->enableHFI2= FALSE;
 
     obj->IsSet_A = 0.0f;
+
+    obj -> SpeedEstError = 0.0f;
+    obj -> ElecThetaEstError = 0.0f;
+    obj -> SelfCommissioning_CtrlCycleCounter = 0;
 
     obj->alignTimeDelay = (uint16_t)(objUser->ctrlFreq_Hz * 2.0f);      // 2.0s
     obj->forceRunTimeDelay = (uint16_t)(objUser->ctrlFreq_Hz * 1.0f);   // 1.0s
@@ -2013,15 +2017,23 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
                  if(obj -> enableHFI2 == TRUE)
                  {
 
-                    // buraya geri donecegiz.
 
                     obj->enableSpeedCtrl = FALSE;
                     obj->enableCurrentCtrl = TRUE;
-                    obj-> angleFOC_rad  = 0.0f;
+                    obj -> angleFOC_rad = ((2.0f * obj_hfi -> ElecThetaEst) - 1.0f) * MATH_PI;
+                    obj -> speed_Hz = obj_hfi -> SpeedEstFiltered * obj_hfi -> F_Base;
 
 
-                    TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
-                    ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+
+
+
+                    // aciya sifir yazmaliyimyim bak
+
+                    // obj-> angleFOC_rad  = 0.0f;
+
+
+                    // TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+                    // ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
 
                   }
                   else
@@ -2029,6 +2041,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
                     obj->enableSpeedCtrl = FALSE;
                     obj->enableCurrentCtrl = FALSE;
                     obj-> angleFOC_rad  = 0.0f;
+                    obj -> speed_Hz = 0.0f;
 
                     obj->IsRef_A = 0.0f;
                     obj->Idq_out_A.value[0] = 0.0f;
@@ -2429,9 +2442,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
                  obj -> Vdq_out_V.value[1] = 0.0f;
 
               }
-
         }
-
     }
 
     if (obj -> enableFluxLinEst1 == TRUE)
@@ -2540,9 +2551,12 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
                 // Fbks.ElecTheta = Sensorless_IPMSM_HFI.ElecThetaEst;
 
             // Assign output.
-            Refs.Vinject = obj_hfi -> InjVol;
-            Fbks.Speed = obj_hfi -> SpeedEstFiltered;
-            Fbks.ElecTheta = obj_hfi -> ElecThetaEst;
+            obj -> Vdq_out_V.value[0] = obj -> Vdq_out_V.value[0] +  obj_hfi -> InjVol * obj->adcData.VdcBus_V / sqrtf(3.0f) ;
+            obj_hfi -> InjVol = 0;
+
+            obj->speed_Hz = obj_hfi -> SpeedEstFiltered * obj_hfi -> F_Base ;
+            obj -> angleFOC_rad =  ((2.0f * obj_hfi -> ElecThetaEst) - 1.0f) * MATH_PI  ;
+
 
             // Subtract the signal at injection frequency from the feedback.
                 // Fbks.Id -= Sensorless_IPMSM_HFI.BPF_Id_Out;
@@ -2550,11 +2564,11 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 
             // Subtract the signal at injection frequency from the feedback.
 
-                   obj -> Idq_in_A.value[0] -= obj_hfi -> BPF_Id_Out;
-                   obj -> Idq_in_A.value[1] -= obj_hfi -> BPF_Iq_Out;
+                   obj -> Idq_in_A.value[0] -= obj_hfi -> BPF_Id_Out * obj_hfi -> I_Base;
+                   obj -> Idq_in_A.value[1] -= obj_hfi -> BPF_Iq_Out * obj_hfi -> I_Base;
 
 
-            // Current loop tuning update.
+       /*       // Current loop tuning update.
             if (SensorlessSpdFbk_CurrentControllerUpdate == TRUE)
             {  SensorlessSpdFbk_CurrentControllerUpdate = FALSE;
 
@@ -2566,8 +2580,13 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
             }
 
 
-            // Determine the max voltage demand from current controller. Aim is to leave room for 'Refs.Vinject'.
-               idq_ctrl1.Vmax = _IQsqrt( _IQmpy(idq_ctrl1.Vmax_Init, idq_ctrl1.Vmax_Init) - _IQmpy( Sensorless_IPMSM_HFI.InjVolMagn_UdcComp, (Sensorless_IPMSM_HFI.InjVolMagn_UdcComp + _IQmpy2(_IQabs(idq_ctrl1.Vd))) ) );
+       */
+
+
+        // Determine the max voltage demand from current controller. Aim is to leave room for 'Refs.Vinject'.
+         //      idq_ctrl1.Vmax = _IQsqrt( _IQmpy(idq_ctrl1.Vmax_Init, idq_ctrl1.Vmax_Init) - _IQmpy( Sensorless_IPMSM_HFI.InjVolMagn_UdcComp, (Sensorless_IPMSM_HFI.InjVolMagn_UdcComp + _IQmpy2(_IQabs(idq_ctrl1.Vd))) ) );
+
+
 
 
         /*
@@ -2594,24 +2613,62 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
          */
 
            // Magnet polarity detection.
-           if (obj_hfi -> MagnPolarDetectFinished == FALSE)
-              {  if (obj_hfi -> MagnPolarDetectMode == 1)
-                    { Refs.IdMagnPolarDetect = _IQ(-0.5);}
+           if (obj_hfi -> MagnPolarDetectFinished == 0.0f)
+              {  if (obj_hfi -> MagnPolarDetectMode == 1.0f)
+                    { obj->IdqRef_A.value[0] = (-0.5f) * obj_hfi -> I_Base;}
                  else if (obj_hfi -> MagnPolarDetectMode == 2)
-                    { Refs.IdMagnPolarDetect = _IQ(0.5);}
+                    { obj->IdqRef_A.value[0] = (0.5f) * obj_hfi -> I_Base;}
                  else
-                    { Refs.IdMagnPolarDetect = _IQ(0.0);}
+                    { obj->IdqRef_A.value[0] = (0.0f);}
                }
             else
-               { Refs.IdMagnPolarDetect = _IQ(0.0);}
+               { obj->IdqRef_A.value[0] = (0.0f);}
 
             // Angle and speed estimation errors.
-            ElecThetaEstError = speed1.ElecTheta - Sensorless_IPMSM_HFI.ElecThetaEst;
-            if (ElecThetaEstError > _IQ(0.5))
-               {  ElecThetaEstError -=_IQ(1.0);}
-            else if (ElecThetaEstError < _IQ(-0.5))
-               { ElecThetaEstError +=_IQ(1.0);}
-            SpeedEstError = speed1.Speed - obj_hfi -> SpeedEstFiltered;
+
+           obj -> ElecThetaEstError = ((obj->angleENC_rad + MATH_PI)  / MATH_TWO_PI  ) - obj_hfi -> ElecThetaEst;
+           obj -> ElecThetaEstError = obj->angleENC_rad - obj_hfi -> ElecThetaEst;
+            if (obj -> ElecThetaEstError > (0.5f))
+               { obj -> ElecThetaEstError -= (1.0f);}
+            else if (obj -> ElecThetaEstError < (-0.5f))
+               { obj -> ElecThetaEstError += (1.0f);}
+            obj -> SpeedEstError = obj -> speedENC_Hz - (obj_hfi -> SpeedEstFiltered * obj_hfi -> F_Base );
+
+
+            obj -> SelfCommissioning_CtrlCycleCounter++;
+            if(obj -> SelfCommissioning_CtrlCycleCounter > 100)
+            {  obj -> enableHFI2 = 1.0f;
+               obj -> SelfCommissioning_CtrlCycleCounter = 101;}
+
+               // Finish
+               if(obj_hfi -> MagnPolarDetectFinished == TRUE)
+               {  obj -> enableHFI1 = FALSE;
+                  obj -> enableHFI2 = FALSE;
+
+                  obj -> SelfCommissioning_CtrlCycleCounter = 0.0f;
+                  obj -> enableSpeedCtrl = FALSE;
+                  obj -> enableCurrentCtrl = FALSE;
+
+
+                  obj -> IsRef_A = 0.0f;
+                  obj -> Idq_out_A.value[0] = 0.0f;
+                  obj -> Idq_out_A.value[1] = 0.0f;
+
+                  TRAJ_setIntValue(obj -> trajHandle_spd, 0.0f);
+                  ANGLE_GEN_setAngle(obj -> angleGenHandle, 0.0f);
+
+                  obj -> Vdq_ffwd_V.value[0] = 0.0f;
+                  obj -> Vdq_ffwd_V.value[1] = 0.0f;
+
+                  obj -> Vdq_out_V.value[0] = 0.0f;
+                  obj -> Vdq_out_V.value[1] = 0.0f;
+
+                  obj -> flagEnableRunAndIdentify = FALSE;
+                         //      lsw = lsw_IDLE; // erase later
+                         //     SelfCommissioning_Step = SelfCommStep_RS;
+                         // SynRM: D-AXIS AND Q-AXIS MAY BE SHIFTED. ALSO NO NEED TO DETECT MAGNET POLARITY. BE CAREFUL WITH HFI-BASED SENSORLESS CONTROL ALSO. ===================================
+             }
+
 
 
         }

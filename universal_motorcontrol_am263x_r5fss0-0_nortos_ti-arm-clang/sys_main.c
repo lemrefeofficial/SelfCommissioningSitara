@@ -224,14 +224,14 @@ void universal_motorcontrol_main(void *args)
             PWMDAC_getPeriod(halHandle->pwmDACHandle[PWMDAC_NUMBER_1]);
 
     pwmDACData.ptrData[0] = &motorVars_M1.IdqRef_A.value[0];               // PWMDAC1
-//    pwmDACData.ptrData[0] = &motorVars_M1.anglePLL_rad;             // PWMDAC1
-//    pwmDACData.ptrData[1] = &motorVars_M1.angleENC_rad;             // PWMDAC1
-//    pwmDACData.ptrData[1] = &motorVars_M1.angleHall_rad;            // PWMDAC1
-//    pwmDACData.ptrData[1] = &motorVars_M1.angleGen_rad;             // PWMDAC2
-//    pwmDACData.ptrData[1] = &motorVars_M1.adcData.I_A.value[0];     // PWMDAC2
-    pwmDACData.ptrData[1] = &motorVars_M1.speed_int_Hz;                // PWMDAC2
+//  pwmDACData.ptrData[0] = &motorVars_M1.anglePLL_rad;             // PWMDAC1
+//  pwmDACData.ptrData[1] = &motorVars_M1.angleENC_rad;             // PWMDAC1
+//  pwmDACData.ptrData[1] = &motorVars_M1.angleHall_rad;            // PWMDAC1
+//  pwmDACData.ptrData[1] = &motorVars_M1.angleGen_rad;             // PWMDAC2
+//  pwmDACData.ptrData[1] = &motorVars_M1.adcData.I_A.value[0];     // PWMDAC2
+    pwmDACData.ptrData[1] = &motorVars_M1.IdqRef_A.value[1]; ;                // PWMDAC2
     pwmDACData.ptrData[2] = &motorVars_M1.random_v;                // PWMDAC3
-//    pwmDACData.ptrData[2] = &motorVars_M1.adcData.I_A.value[1];     // PWMDAC3
+//  pwmDACData.ptrData[2] = &motorVars_M1.adcData.I_A.value[1];     // PWMDAC3
     pwmDACData.ptrData[3] = &motorVars_M1.adcData.I_A.value[1];       // PWMDAC4
 
     pwmDACData.offset[0] = 0.5f;    // PWMDAC1
@@ -244,7 +244,7 @@ void universal_motorcontrol_main(void *args)
    // pwmDACData.gain[0] = 1.0f / MATH_TWO_PI;
     pwmDACData.gain[0] = 1.0f / USER_M1_ADC_FULL_SCALE_CURRENT_A;// PWMDAC1
 //    pwmDACData.gain[1] = 1.0f / MATH_TWO_PI;                        // PWMDAC2
-    pwmDACData.gain[1] = 1.0f;   // PWMDAC2
+    pwmDACData.gain[1] = 1.0f / USER_M1_ADC_FULL_SCALE_CURRENT_A;   // PWMDAC2
 //    pwmDACData.gain[1] = 1.0f / USER_MOTOR1_FREQ_MAX_Hz;              // PWMDAC2
     pwmDACData.gain[2] = 1.0f / 100.0f;              // PWMDAC3
 //    pwmDACData.gain[2] = 1.0f / USER_M1_ADC_FULL_SCALE_CURRENT_A;   // PWMDAC3

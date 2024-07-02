@@ -63,6 +63,11 @@ extern "C"
 #include <math.h>
 #include "math_types.h"
 
+#define   FLOAT_MATH     1
+#define   IQ_MATH        0
+
+#define   MATH_TYPE      FLOAT_MATH
+
 
 /*************************************************************************************************************************************************************************************/
 // Defines the HFI object
@@ -171,7 +176,7 @@ extern void HFI_setParams(HFI_Handle handle);
 
 // dont forget to define function inputs.
 
-static inline void HFI_run(HFI_Handle handle, const float32_t MechSpeed, const float32_t iq_fb, const float32_t Vq_fb)
+static inline void HFI_run(HFI_Handle handle, const float32_t Id_fb, const float32_t Iq_fb, const float32_t Vdc, const float32_t feedforwardSpeedref)
 {
 
     HFI_Obj *obj = (HFI_Obj *)handle;
@@ -199,13 +204,13 @@ static inline void HFI_run(HFI_Handle handle, const float32_t MechSpeed, const f
                    }
 
                 /* '_IQdiv' can work for the division of two integer variables. */
-                obj -> InjVolAngleStep = ((1.0f / (2.0f * obj -> InjVolHalfPrdSampleNo));
+                obj -> InjVolAngleStep = (1.0f / (2.0f * obj -> InjVolHalfPrdSampleNo));
                 obj -> InjVolFreq = (obj -> InjVolAngleStep / obj -> AngIntgGain);
 
                 obj -> InjVolMagn = ((obj -> InjVolFreq * obj -> Ld) * obj -> IhfiTarget);
              }
           while (obj -> InjVolMagn > obj -> InjVolMagnMaxLim);
-          // obj -> Kerror = _IQdiv( _IQmpy(obj -> InjVolMagn, _IQdiv2(obj -> Lq - obj -> Ld)), _IQmpy(obj -> InjVolFreq, _IQmpy(obj -> Lq, obj -> Ld)) );                                                                                                                                                                                            \
+          // obj -> Kerror = _IQdiv( _IQmpy(obj -> InjVolMagn, _IQdiv2(obj -> Lq - obj -> Ld)), _IQmpy(obj -> InjVolFreq, _IQmpy(obj -> Lq, obj -> Ld)) );
 
           obj -> Kerror = ( (obj -> InjVolMagn * ((obj -> Lq - obj -> Ld) / 2.0f)) / (obj -> InjVolFreq * (obj -> Lq * obj -> Ld)) );
           obj -> HFI_Wc = (obj -> InjVolFreq / obj -> Ratio_InjFreq_WcHFI);
@@ -265,6 +270,11 @@ static inline void HFI_run(HFI_Handle handle, const float32_t MechSpeed, const f
 
           obj -> SpeedEstFiltered = (0.0f);
        }
+
+    obj -> IdFbk =  Id_fb / obj->I_Base;
+    obj -> IqFbk =  Iq_fb / obj->I_Base;
+    obj -> Udc =  Vdc /obj->Vdc_Base;
+    obj -> ff_SpeedRef = feedforwardSpeedref  / obj -> F_Base;
 
     /* Extract the harmonic current in the Estimated Q-axis */
     /* 2nd order Band-Pass Filter - Direct Form 1 */
@@ -337,7 +347,8 @@ static inline void HFI_run(HFI_Handle handle, const float32_t MechSpeed, const f
     obj -> InjVolMagn_UdcComp = obj -> InjVolMagn;
     if (obj -> Udc > obj -> UdcCompMinVol)
        {  obj -> InjVolMagn_UdcComp = (obj -> InjVolMagn / obj -> Udc);} /* Another option is to use close-loop regulation of injection current amplitude, maybe using Goertzel. */
-    obj -> InjVol = (obj -> InjVolMagn_UdcComp * cosf(obj -> InjVolAngle * MATH_TWO_PI));
+    obj -> InjVol = (obj -> InjVolMagn_UdcComp * cosf(obj -> InjVolAngle * MATH_TWO_PI)) ;
+    //obj->InjVol = (obj->InjVolMagn* cosf(obj->InjVolAngle_ZOHComp*MATH_TWO_PI))*vdc_ref/sqrtf(3.0f);
 
 
 

@@ -10,6 +10,18 @@
     </mapAttribute>
     <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_DEBUGGER_PROPERTIES.AM263_CC.ccxml.Texas Instruments XDS110 USB Debug Probe_0/Cortex_R5_0" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot; ?&gt;&#10;&lt;PropertyValues&gt;&#10;&#10;  &lt;property id=&quot;ConnectOnStartup&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;  &lt;property id=&quot;EnableInstalledBreakpoint&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;  &lt;property id=&quot;IgnoreSoftLaunchFailures&quot;&gt;&#10;    &lt;curValue&gt;0&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;&lt;/PropertyValues&gt;&#10;"/>
     <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_DEBUGGER_PROPERTIES.AM263_LP.ccxml.Texas Instruments XDS110 USB Debug Probe_0/Cortex_R5_0" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot; ?&gt;&#10;&lt;PropertyValues&gt;&#10;&#10;  &lt;property id=&quot;ConnectOnStartup&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;  &lt;property id=&quot;EnableInstalledBreakpoint&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;  &lt;property id=&quot;IgnoreSoftLaunchFailures&quot;&gt;&#10;    &lt;curValue&gt;0&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;&lt;/PropertyValues&gt;&#10;"/>
+    <setAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_HIDE_CONFIG_ELEMENT_TYPES">
+        <setEntry value="BOARD"/>
+        <setEntry value="BYPASSED_CPU"/>
+        <setEntry value="BYPASSED_ROUTER"/>
+        <setEntry value="CONNECTION"/>
+        <setEntry value="DEVICE"/>
+        <setEntry value="NON_DEBUG_CPU"/>
+        <setEntry value="NO_DRIVER"/>
+        <setEntry value="ROUTER"/>
+        <setEntry value="SUBPATH"/>
+        <setEntry value="SYSTEM"/>
+    </setAttribute>
     <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM.AM263_CC.ccxml.Texas Instruments XDS110 USB Debug Probe_0/Cortex_R5_0" value="${build_artifact:universal_motorcontrol_am263x_r5fss0-0_nortos_ti-arm-clang}"/>
     <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM.AM263_LP.ccxml.Texas Instruments XDS110 USB Debug Probe_0/Cortex_R5_0" value="${build_artifact:universal_motorcontrol_am263x_r5fss0-0_nortos_ti-arm-clang}"/>
     <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROJECT.AM263_CC.ccxml.Texas Instruments XDS110 USB Debug Probe_0/Cortex_R5_0" value="universal_motorcontrol_am263x_r5fss0-0_nortos_ti-arm-clang"/>

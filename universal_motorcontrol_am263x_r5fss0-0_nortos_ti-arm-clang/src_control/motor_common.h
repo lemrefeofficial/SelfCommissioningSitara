@@ -625,6 +625,12 @@ typedef struct _MOTOR_Vars_t_
     float32_t IsSet_A;
     float32_t Is_ffwd_A;
 
+  // HFI
+    float32_t SpeedEstError;
+    float32_t ElecThetaEstError;
+    float32_t SelfCommissioning_CtrlCycleCounter;
+
+
     float32_t fluxCurrent_A;
     float32_t alignCurrent_A;
     float32_t startCurrent_A;

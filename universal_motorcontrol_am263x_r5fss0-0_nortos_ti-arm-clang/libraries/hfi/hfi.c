@@ -77,7 +77,8 @@ void HFI_setParams(HFI_Handle handle)
     obj -> VariableInit = 1.0f;
     obj -> InjVolHalfPrdSampleNoInit = 5.0f;
     obj -> InjVolHalfPrdSampleNoMaxLim = 10.0f;
-    obj -> SampleNoBase = Fs/BASE_FREQ;
+    // obj -> SampleNoBase = Fs/BASE_FREQ;
+    obj -> SampleNoBase = 15000.0f / 100.0f;
     obj -> InjVolMagnMaxLim = (0.5f);
     obj -> IhfiTarget = (0.1f);
     obj -> UdcCompMinVol = (0.2f); // per-unit
@@ -86,26 +87,12 @@ void HFI_setParams(HFI_Handle handle)
     obj -> Ratio_WcCurrent_WcHFI = (3.0f); // max is 3.
     obj -> SpeedEstMaxLim = (1.0f);
     obj -> BPF_Zeta = (0.3f); // select between 0.3-0.5
-    obj -> AngIntgGain = _IQ(BASE_FREQ*Ts); // No need for '2*PI' multiplier because we always use cosPU or sinPU.
-    obj -> TimePU = _IQ(2*PI*BASE_FREQ*Ts);
+    // obj -> AngIntgGain = (100.0f * Ts); // No need for '2*PI' multiplier because we always use cosPU or sinPU.
+    obj -> AngIntgGain = (100.0f / 15000.0f); // No need for '2*PI' multiplier because we always use cosPU or sinPU.
+    obj -> TimePU = (2.0f * MATH_PI * 100 / 15000.0f);
     obj -> Ld = (0.16f);
     obj -> Lq = (0.32f);
 
-
-
-    obj -> VariableInit = 1.0f;
-    obj -> AveragingSize = 20000;
-    obj -> WaitingTime2Settle_Speed = 10000.0f;
-    obj -> MaxTime4Settle = 100000.0f;
-    obj -> TestSpeed = 0.25f;
-    obj -> SpeedErrLim4Settle = 0.05f;
-    obj -> Rs = 0.11;
-    obj -> Lq = 0.21f;
-    obj -> TimePU = MATH_TWO_PI *  100.0f * (0.001f/15.0f);
- // obj -> LPF_IqDeriv_Gain = _IQdiv(_IQmpy(_IQ(5.0),Est_MagnFlux_DFT.TimePU), (_IQ(1.0) + _IQmpy(_IQ(5.0), Est_MagnFlux_DFT.TimePU))); // LPF with 500-Hz cut-off - Backward Euler
-    obj -> LPF_IqDeriv_Gain = (((5.0f) * obj -> TimePU) / ( 1.0f + (5.0f * obj -> TimePU))); // LPF with 500-Hz cut-off - Backward Euler
- // obj -> LPF_SpeedErr_Gain = _IQdiv(_IQmpy(_IQ(0.01), Est_MagnFlux_DFT.TimePU), (_IQ(1.0) + _IQmpy(_IQ(0.01), Est_MagnFlux_DFT.TimePU))); // LPF with 1-Hz cut-off - Backward Euler
-    obj -> LPF_SpeedErr_Gain = ((0.01f * obj -> TimePU) / (1.0f + (0.01f * obj -> TimePU))); // LPF with 1-Hz cut-off - Backward Euler
 
     obj -> Vdc_Base = 409.0f;
     obj -> Vph_Base = 236.1f;
