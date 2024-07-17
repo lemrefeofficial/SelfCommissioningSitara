@@ -1853,125 +1853,52 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
         TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
         ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
 
-//        obj->enableSpeedCtrl = FALSE;
-//        obj-> angleFOC_rad  = 0.0f;
-//
-//
-//                                                 obj->IsRef_A = 0.0f;
-//                                                 obj->Idq_out_A.value[0] = 0.0f;
-//                                                 obj->Idq_out_A.value[1] = 0.0f;
-//
-//                                                 TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
-//                                                 ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
-
-                            //                     PI_setUi(piHandle_Id[MTR_1],0.0f);
-                            //                     PI_setRefValue(piHandle_Id[MTR_1], 0.0f);
-                            //                     PI_setFbackValue(piHandle_Id[MTR_1], 0.0f);
-                              //                   obj->Vdq_ffwd_V.value[0] = 0.0f;
-                                //                 obj->Vdq_ffwd_V.value[1] = 0.0f;
-
-
-                            //                     PI_setUi(piHandle_Iq[MTR_1],0.0f);
-                            //                     PI_setRefValue(piHandle_Iq[MTR_1], 0.0f);
-                            //                     PI_setFbackValue(piHandle_Iq[MTR_1], 0.0f);
-
-
-                                  //               obj->Vdq_out_V.value[0] = 0.0f;
-                                    //             obj->Vdq_out_V.value[1] = 0.0f;
-
         if((obj->stateRunTimeCnt > obj->alignTimeDelay) || (obj->flagEnableAlignment == FALSE))
         {
             if(obj->enableSelf_comm1 == TRUE)
             {
                 if (obj->enableSelf_comm2 == TRUE)
                    {
-//                      St1_Finish_st1=1.0f;
-     //                 angleFOCM1_rad = motorVars[MTR_1].Elec_theta_St1;
-//                    obj->enableSpeedCtrl = FALSE;
-//                    obj->enableCurrentCtrl = FALSE;
-//
-//                      motorVars[MTR_1].IsRef_A = 0.0f;
-//                      Idq_ref_A[MTR_1].value[0] = 0.0f;
-//                      Idq_ref_A[MTR_1].value[1] = 0.0f;
-//
-//                      TRAJ_setIntValue(trajHandle_spd[MTR_1], 0.0f);
-//
-//
-//                      PI_setUi(piHandle_Id[MTR_1],0.0f);
-//                      PI_setRefValue(piHandle_Id[MTR_1], 0.0f);
-//                      PI_setFbackValue(piHandle_Id[MTR_1], 0.0f);
-//                      PI_setFfwdValue(piHandle_Id[MTR_1], 0.0f);
-//
-//                      PI_setUi(piHandle_Iq[MTR_1],0.0f);
-//                      PI_setRefValue(piHandle_Iq[MTR_1], 0.0f);
-//                      PI_setFbackValue(piHandle_Iq[MTR_1], 0.0f);
-//                      PI_setFfwdValue(piHandle_Iq[MTR_1], 0.0f);
-//
-//                      Vdq_out_V_T[MTR_1].value[0] = 0.0f;
-//                      Vdq_out_V_T[MTR_1].value[1] = 0.0f;
 
-                    //                      St1_Finish_st1=1.0f;
-                    //                     angleFOCM1_rad = 0.0f;
-                                        obj->enableSpeedCtrl = FALSE;
-                                        obj->enableCurrentCtrl = FALSE;
+                      obj->enableSpeedCtrl = FALSE;
+                      obj->enableCurrentCtrl = FALSE;
 
+                      obj->IsRef_A = 0.0f;
+                      obj->Idq_out_A.value[0] = 0.0f;
+                      obj->Idq_out_A.value[1] = 0.0f;
 
-                                         obj->IsRef_A = 0.0f;
-                                         obj->Idq_out_A.value[0] = 0.0f;
-                                         obj->Idq_out_A.value[1] = 0.0f;
+                      TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+                      ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
 
-                                         TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
-                                         ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+                      obj->Vdq_ffwd_V.value[0] = 0.0f;
+                      obj->Vdq_ffwd_V.value[1] = 0.0f;
 
-                    //                     PI_setUi(piHandle_Id[MTR_1],0.0f);
-                    //                     PI_setRefValue(piHandle_Id[MTR_1], 0.0f);
-                    //                     PI_setFbackValue(piHandle_Id[MTR_1], 0.0f);
-                                         obj->Vdq_ffwd_V.value[0] = 0.0f;
-                                         obj->Vdq_ffwd_V.value[1] = 0.0f;
-
-
-                    //                     PI_setUi(piHandle_Iq[MTR_1],0.0f);
-                    //                     PI_setRefValue(piHandle_Iq[MTR_1], 0.0f);
-                    //                     PI_setFbackValue(piHandle_Iq[MTR_1], 0.0f);
-
-
-                                         obj->Vdq_out_V.value[0] = 0.0f;
-                                         obj->Vdq_out_V.value[1] = 0.0f;
-
+                      obj->Vdq_out_V.value[0] = 0.0f;
+                      obj->Vdq_out_V.value[1] = 0.0f;
 
                    }
                   else
                    {
 
-//                      St1_Finish_st1=1.0f;
-//                     angleFOCM1_rad = 0.0f;
+                 // St1_Finish_st1=1.0f;
+                 // angleFOCM1_rad = 0.0f;
                     obj->enableSpeedCtrl = FALSE;
                     obj->enableCurrentCtrl = FALSE;
 
+                    obj->IsRef_A = 0.0f;
+                    obj->Idq_out_A.value[0] = 0.0f;
+                    obj->Idq_out_A.value[1] = 0.0f;
 
-                     obj->IsRef_A = 0.0f;
-                     obj->Idq_out_A.value[0] = 0.0f;
-                     obj->Idq_out_A.value[1] = 0.0f;
+                    TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+                    ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
 
-                     TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
-                     ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+                    obj->Vdq_ffwd_V.value[0] = 0.0f;
+                    obj->Vdq_ffwd_V.value[1] = 0.0f;
 
-//                     PI_setUi(piHandle_Id[MTR_1],0.0f);
-//                     PI_setRefValue(piHandle_Id[MTR_1], 0.0f);
-//                     PI_setFbackValue(piHandle_Id[MTR_1], 0.0f);
-                     obj->Vdq_ffwd_V.value[0] = 0.0f;
-                     obj->Vdq_ffwd_V.value[1] = 0.0f;
+                    obj->Vdq_out_V.value[0] = 0.0f;
+                    obj->Vdq_out_V.value[1] = 0.0f;
 
-
-//                     PI_setUi(piHandle_Iq[MTR_1],0.0f);
-//                     PI_setRefValue(piHandle_Iq[MTR_1], 0.0f);
-//                     PI_setFbackValue(piHandle_Iq[MTR_1], 0.0f);
-
-
-                     obj->Vdq_out_V.value[0] = 0.0f;
-                     obj->Vdq_out_V.value[1] = 0.0f;
-
-//                     motorVars[MTR_1].Elec_theta_St1= 0.0f;
+                 // motorVars[MTR_1].Elec_theta_St1= 0.0f;
                    }
             }
             else if( obj -> enableSatIndEst1 == TRUE)
@@ -1979,14 +1906,12 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
                 if(obj -> enableSatIndEst2 == TRUE)
                 {
 
-
                     obj->enableSpeedCtrl = FALSE;
                     obj->enableCurrentCtrl = TRUE;
                     obj-> angleFOC_rad  = 0.0f;
 
-
-                  TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
-                  ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+                    TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+                    ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
 
                 }
                 else
@@ -2007,9 +1932,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 
                     obj->Vdq_out_V.value[0] = 0.0f;
                     obj->Vdq_out_V.value[1] = 0.0f;
-
                 }
-
             }
 
             else if( obj -> enableHFI1 == TRUE)
@@ -2017,67 +1940,61 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
                  if(obj -> enableHFI2 == TRUE)
                  {
 
+                    obj -> enableSpeedCtrl = FALSE;
+                    obj -> enableCurrentCtrl = TRUE;
+                    obj -> angleFOC_rad = obj_hfi -> ElecThetaEst * MATH_TWO_PI;
 
-                    obj->enableSpeedCtrl = FALSE;
-                    obj->enableCurrentCtrl = TRUE;
-                    obj -> angleFOC_rad = ((2.0f * obj_hfi -> ElecThetaEst) - 1.0f) * MATH_PI;
-                    obj -> speed_Hz = obj_hfi -> SpeedEstFiltered * obj_hfi -> F_Base;
-
-
-
-
+                    // obj -> angleFOC_rad = ((2.0f * obj_hfi -> ElecThetaEst) - 1.0f) * MATH_PI;
+                    // ask akshay
+                    // obj -> angleFOC_rad = ((2.0f * obj_hfi -> ElecThetaEst) - 1.0f) * MATH_PI;
+                    // obj -> speed_Hz = obj_hfi -> SpeedEstFiltered * obj_hfi -> F_Base;
 
                     // aciya sifir yazmaliyimyim bak
-
                     // obj-> angleFOC_rad  = 0.0f;
-
-
                     // TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
                     // ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
 
                   }
                   else
                   {
-                    obj->enableSpeedCtrl = FALSE;
-                    obj->enableCurrentCtrl = FALSE;
-                    obj-> angleFOC_rad  = 0.0f;
+                    obj -> enableSpeedCtrl = FALSE;
+                    obj -> enableCurrentCtrl = FALSE;
+                    obj -> angleFOC_rad  = 0.0f;
                     obj -> speed_Hz = 0.0f;
 
-                    obj->IsRef_A = 0.0f;
-                    obj->Idq_out_A.value[0] = 0.0f;
-                    obj->Idq_out_A.value[1] = 0.0f;
+                    obj -> IsRef_A = 0.0f;
+                    obj -> Idq_out_A.value[0] = 0.0f;
+                    obj -> Idq_out_A.value[1] = 0.0f;
 
                     TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
                     ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
 
-                    obj->Vdq_ffwd_V.value[0] = 0.0f;
-                    obj->Vdq_ffwd_V.value[1] = 0.0f;
+                    obj -> Vdq_ffwd_V.value[0] = 0.0f;
+                    obj -> Vdq_ffwd_V.value[1] = 0.0f;
 
-                    obj->Vdq_out_V.value[0] = 0.0f;
-                    obj->Vdq_out_V.value[1] = 0.0f;
+                    obj -> Vdq_out_V.value[0] = 0.0f;
+                    obj -> Vdq_out_V.value[1] = 0.0f;
 
                    }
               }
 
             else
             {
-            obj->stateRunTimeCnt = 0;
-            obj->motorState = MOTOR_OL_START;
+                 obj -> stateRunTimeCnt = 0;
+                 obj -> motorState = MOTOR_OL_START;
 
-            obj->Idq_out_A.value[0] = obj->fluxCurrent_A;
+                 obj -> Idq_out_A.value[0] = obj -> fluxCurrent_A;
 
-            ENC_setState(obj->encHandle, ENC_WAIT_FOR_INDEX);
-            PI_setUi(obj->piHandle_spd, 0.0);
+                 ENC_setState(obj -> encHandle, ENC_WAIT_FOR_INDEX);
+                 PI_setUi(obj -> piHandle_spd, 0.0);
             }
-//                        obj->stateRunTimeCnt = 0;
-//                        obj->motorState = MOTOR_OL_START;
+//               obj -> stateRunTimeCnt = 0;
+//               obj -> motorState = MOTOR_OL_START;
 //
-//                        obj->Idq_out_A.value[0] = obj->fluxCurrent_A;
+//               obj -> Idq_out_A.value[0] = obj->fluxCurrent_A;
 //
-//                        ENC_setState(obj->encHandle, ENC_WAIT_FOR_INDEX);
-//                        PI_setUi(obj->piHandle_spd, 0.0);
-
-
+//               ENC_setState(obj->encHandle, ENC_WAIT_FOR_INDEX);
+//               PI_setUi(obj -> piHandle_spd, 0.0);
         }
     }
     else if(obj->motorState == MOTOR_SEEK_POS)
@@ -2290,89 +2207,38 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
      {
          if (obj->enableSelf_comm2 == TRUE)
          {
- //
-             SELFCOMMM_run(obj->self_comm_step1_H, obj->adcData.VdcBus_V ,
-                           obj->Idq_in_A.value[0], obj->Idq_in_A.value[1]);
- //
+
+             SELFCOMMM_run(obj->self_comm_step1_H, obj->adcData.VdcBus_V, obj->Idq_in_A.value[0], obj->Idq_in_A.value[1]);
+
              obj->angleFOC_rad = obj_self->ElecTheta * MATH_TWO_PI;
-             obj->Vdq_out_V.value[0] = obj->Vdq_out_V.value[0]+obj_self->InjVol;
+             obj->Vdq_out_V.value[0] = obj->Vdq_out_V.value[0] + obj_self->InjVol;
              obj_self->InjVol = 0.0f;
 
              if (obj_self->Finish==1.0f)
              {
-                 obj->enableSelf_comm2 = FALSE;
+                 obj -> enableSelf_comm2 = FALSE;
 
-//                 St1_Finish_st1=1.0f;
-//                                 angleFOCM1_rad = 0.0f;
-//                                 flagEnableSpeedCtrl = false;
-//                                 flagEnableCurrentCtrl = false;
-//
-//
-//                                 motorVars[MTR_1].IsRef_A = 0.0f;
-//                                 Idq_ref_A[MTR_1].value[0] = 0.0f;
-//                                 Idq_ref_A[MTR_1].value[1] = 0.0f;
-//
-//                                 TRAJ_setIntValue(trajHandle_spd[MTR_1], 0.0f);
-//
-//
-//                                 PI_setUi(piHandle_Id[MTR_1],0.0f);
-//                                 PI_setRefValue(piHandle_Id[MTR_1], 0.0f);
-//                                 PI_setFbackValue(piHandle_Id[MTR_1], 0.0f);
-//                                 PI_setFfwdValue(piHandle_Id[MTR_1], 0.0f);
-//
-//
-//                                 PI_setUi(piHandle_Iq[MTR_1],0.0f);
-//                                 PI_setRefValue(piHandle_Iq[MTR_1], 0.0f);
-//                                 PI_setFbackValue(piHandle_Iq[MTR_1], 0.0f);
-//                                 PI_setFfwdValue(piHandle_Iq[MTR_1], 0.0f);
-//
-//                                 Vdq_out_V_T[MTR_1].value[0] = 0.0f;
-//                                 Vdq_out_V_T[MTR_1].value[1] = 0.0f;
-//
-//                                 motorVars[MTR_1].Elec_theta_St1= 0.0f;
-//
-//                                 Self_commm2.IdMagnDFT = 0.0f;
-//                                 Self_commm2.IqMagnDFT = 0.0f;
-//                                 Self_commm2.IsMagn = 0.0f;
+                 obj -> angleFOC_rad =  0.0f;
+                 obj -> enableSpeedCtrl = FALSE;
+                 obj -> enableCurrentCtrl = FALSE;
 
-                 //                      St1_Finish_st1=1.0f;
-                                     obj->angleFOC_rad =  0.0f;
-                                     obj->enableSpeedCtrl = FALSE;
-                                     obj->enableCurrentCtrl = FALSE;
+                 obj -> IsRef_A = 0.0f;
+                 obj -> Idq_out_A.value[0] = 0.0f;
+                 obj -> Idq_out_A.value[1] = 0.0f;
 
+                 TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
+                 ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
 
-                                      obj->IsRef_A = 0.0f;
-                                      obj->Idq_out_A.value[0] = 0.0f;
-                                      obj->Idq_out_A.value[1] = 0.0f;
+                 obj->Vdq_ffwd_V.value[0] = 0.0f;
+                 obj->Vdq_ffwd_V.value[1] = 0.0f;
 
-                                      TRAJ_setIntValue(obj->trajHandle_spd, 0.0f);
-                                      ANGLE_GEN_setAngle(obj->angleGenHandle, 0.0f);
+                 obj->Vdq_out_V.value[0] = 0.0f;
+                 obj->Vdq_out_V.value[1] = 0.0f;
 
-                 //                     PI_setUi(piHandle_Id[MTR_1],0.0f);
-                 //                     PI_setRefValue(piHandle_Id[MTR_1], 0.0f);
-                 //                     PI_setFbackValue(piHandle_Id[MTR_1], 0.0f);
-                                      obj->Vdq_ffwd_V.value[0] = 0.0f;
-                                      obj->Vdq_ffwd_V.value[1] = 0.0f;
-
-
-                 //                     PI_setUi(piHandle_Iq[MTR_1],0.0f);
-                 //                     PI_setRefValue(piHandle_Iq[MTR_1], 0.0f);
-                 //                     PI_setFbackValue(piHandle_Iq[MTR_1], 0.0f);
-
-
-                                      obj->Vdq_out_V.value[0] = 0.0f;
-                                      obj->Vdq_out_V.value[1] = 0.0f;
-
-                 //                     motorVars[MTR_1].Elec_theta_St1= 0.0f;
-
-                                      //
-                                      obj_self->IdMagnDFT = 0.0f;
-                                      obj_self->IqMagnDFT = 0.0f;
-                                      obj_self->IsMagn = 0.0f;
-
-
+                 obj_self->IdMagnDFT = 0.0f;
+                 obj_self->IqMagnDFT = 0.0f;
+                 obj_self->IsMagn = 0.0f;
              }
-
          }
      }
 
@@ -2381,67 +2247,46 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
         if( obj -> enableSatIndEst2 == TRUE)
         {
 
-
-          //  if (obj_satindest -> MotorType == (1)) // induction motor  // I dont need this part because it is not induction machine.
-          //  {  obj->angleFOC_rad = 0.25f * MATH_TWO_PI;}
-
-          // Provide inputs  // I added this part into the SATINDEST_run function
-          // if ( (obj_satindest -> MotorType == MtrType_INDUCTION) || ( ((obj_satindest -> MotorType == MtrType_IPMSM) || (obj_satindest -> MotorType == MtrType_SYNRM)) && (obj_satindest -> Axis == D_AXIS) ) )
-          // {
-          //   Est_Ldq_DFT.Ifbk = Fbks.Id;
-          //   Est_Ldq_DFT.Vref = Fbks.VdSW;
-          // }
-
-          // if ( ((Est_Ldq_DFT.MotorType == MtrType_IPMSM) || (Est_Ldq_DFT.MotorType == MtrType_SYNRM)) && (Est_Ldq_DFT.Axis == Q_AXIS) )
-          // {
-          //   Est_Ldq_DFT.Ifbk = Fbks.Iq;
-          //   Est_Ldq_DFT.Vref = Fbks.VqSW;
-          // }
-
-            // IDENTIFICATION_LDQ_DFT_MACRO(Est_Ldq_DFT)
-            // SELFCOMMM_run(obj -> self_comm_step1_H, obj->adcData.VdcBus_V , obj->Idq_in_A.value[0], obj->Idq_in_A.value[1]);
-
             obj ->  random_v = obj -> Vdq_out_V.value[1];
-               SATINDEST_run(obj -> satindest_step4_H, obj -> Vdq_out_V.value[0], obj -> Vdq_out_V.value[1], obj -> Idq_in_A.value[0], obj -> Idq_in_A.value[1]);
+            SATINDEST_run(obj -> satindest_step4_H, obj -> Vdq_out_V.value[0], obj -> Vdq_out_V.value[1], obj -> Idq_in_A.value[0], obj -> Idq_in_A.value[1]);
 
             // Assign outputs
             if ( (obj_satindest -> MotorType == MtrType_INDUCTION) || ( ((obj_satindest -> MotorType == MtrType_IPMSM) || (obj_satindest -> MotorType == MtrType_SYNRM)) && (obj_satindest -> Axis == D_AXIS) ) )
             {
-                // Refs.Id = Est_Ldq_DFT.Iref;
-                obj -> IdqRef_A.value[0] = obj_satindest -> Iref * 10.0f;
+               // Refs.Id = Est_Ldq_DFT.Iref;
+               obj -> IdqRef_A.value[0] = obj_satindest -> Iref * 10.0f;
 
-                //Refs.Iq = _IQ(0.0);}
-                obj -> IdqRef_A.value[1] = 0.0f * 10.0f;}
+               //Refs.Iq = _IQ(0.0);}
+               obj -> IdqRef_A.value[1] = 0.0f * 10.0f;
+            }
 
             if ( ((obj_satindest -> MotorType == MtrType_IPMSM) || (obj_satindest -> MotorType == MtrType_SYNRM)) && (obj_satindest -> Axis == Q_AXIS) )
-            {  obj -> IdqRef_A.value[0] = 0.0f * 10.0f;
-
+            {
+               obj -> IdqRef_A.value[0] = 0.0f * 10.0f;
                obj -> IdqRef_A.value[1] = obj_satindest -> Iref * 10.0f;
             }
 
              // Finish
-             if (obj_satindest -> Finish == 1.0f)
-             {  // obj_satindest -> Finish = FALSE;
+            if (obj_satindest -> Finish == 1.0f)
+            {
+                // obj_satindest -> Finish = FALSE;
+                obj -> enableSatIndEst2 = FALSE;
+                obj -> enableSpeedCtrl = FALSE;
+                obj -> enableCurrentCtrl = FALSE;
 
-                 obj -> enableSatIndEst2 = FALSE;
-                 obj -> enableSpeedCtrl = FALSE;
-                 obj -> enableCurrentCtrl = FALSE;
+                obj -> IsRef_A = 0.0f;
+                obj -> Idq_out_A.value[0] = 0.0f;
+                obj -> Idq_out_A.value[1] = 0.0f;
 
+                TRAJ_setIntValue(obj -> trajHandle_spd, 0.0f);
+                ANGLE_GEN_setAngle(obj -> angleGenHandle, 0.0f);
 
-                 obj -> IsRef_A = 0.0f;
-                 obj -> Idq_out_A.value[0] = 0.0f;
-                 obj -> Idq_out_A.value[1] = 0.0f;
+                obj -> Vdq_ffwd_V.value[0] = 0.0f;
+                obj -> Vdq_ffwd_V.value[1] = 0.0f;
 
-                 TRAJ_setIntValue(obj -> trajHandle_spd, 0.0f);
-                 ANGLE_GEN_setAngle(obj -> angleGenHandle, 0.0f);
-
-                 obj -> Vdq_ffwd_V.value[0] = 0.0f;
-                 obj -> Vdq_ffwd_V.value[1] = 0.0f;
-
-                 obj -> Vdq_out_V.value[0] = 0.0f;
-                 obj -> Vdq_out_V.value[1] = 0.0f;
-
-              }
+                obj -> Vdq_out_V.value[0] = 0.0f;
+                obj -> Vdq_out_V.value[1] = 0.0f;
+             }
         }
     }
 
@@ -2532,40 +2377,46 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
         if  (obj -> enableHFI2 == TRUE)
         {
 
-            // Provide inputs.
-                // Sensorless_IPMSM_HFI.IdFbk = Fbks.Id;
-                // Sensorless_IPMSM_HFI.IqFbk = Fbks.Iq;
-                // Sensorless_IPMSM_HFI.Udc = Fbks.Vdc;
-                // Sensorless_IPMSM_HFI.ff_SpeedRef = Refs.SpeedRamped;
+           /*
+              Provide inputs.
+              Sensorless_IPMSM_HFI.IdFbk = Fbks.Id;
+              Sensorless_IPMSM_HFI.IqFbk = Fbks.Iq;
+              Sensorless_IPMSM_HFI.Udc = Fbks.Vdc;
+              Sensorless_IPMSM_HFI.ff_SpeedRef = Refs.SpeedRamped;
 
-           // TO DO LIST: TIMER COUNTER FOR Wait4SettleHFI, Wait4SettleCurrent
+              TO DO LIST: TIMER COUNTER FOR Wait4SettleHFI, Wait4SettleCurrent
 
-           // Execute.
-                // SENSORLESS_IPMSM_HFI_MACRO(Sensorless_IPMSM_HFI)
+              Execute.
+              SENSORLESS_IPMSM_HFI_MACRO(Sensorless_IPMSM_HFI)
+            */
 
-            HFI_run(obj -> hfi_step2_H, obj->Idq_in_A.value[0], obj->Idq_in_A.value[1], obj->adcData.VdcBus_V, obj -> speed_int_Hz );
+            HFI_run(obj -> hfi_step2_H, obj -> Idq_in_A.value[0], obj -> Idq_in_A.value[1], obj -> adcData.VdcBus_V, obj -> speed_int_Hz);
+
+            /*
+               Assign output.
+               Refs.Vinject = Sensorless_IPMSM_HFI.InjVol;
+               Fbks.Speed = Sensorless_IPMSM_HFI.SpeedEstFiltered;
+               Fbks.ElecTheta = Sensorless_IPMSM_HFI.ElecThetaEst;
+            */
 
             // Assign output.
-                // Refs.Vinject = Sensorless_IPMSM_HFI.InjVol;
-                // Fbks.Speed = Sensorless_IPMSM_HFI.SpeedEstFiltered;
-                // Fbks.ElecTheta = Sensorless_IPMSM_HFI.ElecThetaEst;
+            //obj -> Vdq_out_V.value[0] = obj -> Vdq_out_V.value[0] +  (obj_hfi -> InjVol * obj->adcData.VdcBus_V / sqrtf(3.0f)) ;
+            // obj_hfi -> InjVol = 0;
 
-            // Assign output.
-            obj -> Vdq_out_V.value[0] = obj -> Vdq_out_V.value[0] +  obj_hfi -> InjVol * obj->adcData.VdcBus_V / sqrtf(3.0f) ;
-            obj_hfi -> InjVol = 0;
-
-            obj->speed_Hz = obj_hfi -> SpeedEstFiltered * obj_hfi -> F_Base ;
-            obj -> angleFOC_rad =  ((2.0f * obj_hfi -> ElecThetaEst) - 1.0f) * MATH_PI  ;
+            obj -> speed_Hz = obj_hfi -> SpeedEstFiltered * obj_hfi -> F_Base ;
+            obj -> angleFOC_rad =  obj_hfi -> ElecThetaEst * MATH_TWO_PI;
+            // obj -> angleFOC_rad =  ((2.0f * obj_hfi -> ElecThetaEst) - 1.0f) * MATH_PI;
 
 
-            // Subtract the signal at injection frequency from the feedback.
-                // Fbks.Id -= Sensorless_IPMSM_HFI.BPF_Id_Out;
-                // Fbks.Iq -= Sensorless_IPMSM_HFI.BPF_Iq_Out;
+            /*  Subtract the signal at injection frequency from the feedback.
+                Fbks.Id -= Sensorless_IPMSM_HFI.BPF_Id_Out;
+                Fbks.Iq -= Sensorless_IPMSM_HFI.BPF_Iq_Out;
+            */
 
             // Subtract the signal at injection frequency from the feedback.
 
-                   obj -> Idq_in_A.value[0] -= obj_hfi -> BPF_Id_Out * obj_hfi -> I_Base;
-                   obj -> Idq_in_A.value[1] -= obj_hfi -> BPF_Iq_Out * obj_hfi -> I_Base;
+            obj -> Idq_in_A.value[0] -= (obj_hfi -> BPF_Id_Out * obj_hfi -> I_Base);
+            obj -> Idq_in_A.value[1] -= (obj_hfi -> BPF_Iq_Out * obj_hfi -> I_Base);
 
 
        /*       // Current loop tuning update.
@@ -2582,12 +2433,9 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 
        */
 
-
         // Determine the max voltage demand from current controller. Aim is to leave room for 'Refs.Vinject'.
-         //      idq_ctrl1.Vmax = _IQsqrt( _IQmpy(idq_ctrl1.Vmax_Init, idq_ctrl1.Vmax_Init) - _IQmpy( Sensorless_IPMSM_HFI.InjVolMagn_UdcComp, (Sensorless_IPMSM_HFI.InjVolMagn_UdcComp + _IQmpy2(_IQabs(idq_ctrl1.Vd))) ) );
-
-
-
+        //      idq_ctrl1.Vmax = _IQsqrt( _IQmpy(idq_ctrl1.Vmax_Init, idq_ctrl1.Vmax_Init) - _IQmpy( Sensorless_IPMSM_HFI.InjVolMagn_UdcComp, (Sensorless_IPMSM_HFI.InjVolMagn_UdcComp + _IQmpy2(_IQabs(idq_ctrl1.Vd))) ) );
+        // idq_ctrl1.Vmax = sqrtf((idq_ctrl1.Vmax_Init * idq_ctrl1.Vmax_Init) - ( obj_hfi -> InjVolMagn_UdcComp, (obj_hfi -> InjVolMagn_UdcComp + (2.0f * (MATH_abs(obj -> IdqRef_A.value[0])))) ) );
 
         /*
             // Magnet polarity detection.
@@ -2602,32 +2450,35 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
                 else
                 { Refs.IdMagnPolarDetect = _IQ(0.0);}
 
-
-                // Angle and speed estimation errors.
-                ElecThetaEstError = speed1.ElecTheta - Sensorless_IPMSM_HFI.ElecThetaEst;
-                if (ElecThetaEstError > _IQ(0.5))
-                   {  ElecThetaEstError -=_IQ(1.0);}
-                else if (ElecThetaEstError < _IQ(-0.5))
-                   { ElecThetaEstError +=_IQ(1.0);}
-                SpeedEstError = speed1.Speed - Sensorless_IPMSM_HFI.SpeedEstFiltered;
          */
 
            // Magnet polarity detection.
            if (obj_hfi -> MagnPolarDetectFinished == 0.0f)
               {  if (obj_hfi -> MagnPolarDetectMode == 1.0f)
-                    { obj->IdqRef_A.value[0] = (-0.5f) * obj_hfi -> I_Base;}
+                    { obj -> IdqRef_A.value[0] = (-0.5f) * obj_hfi -> I_Base;}
                  else if (obj_hfi -> MagnPolarDetectMode == 2)
-                    { obj->IdqRef_A.value[0] = (0.5f) * obj_hfi -> I_Base;}
+                    { obj -> IdqRef_A.value[0] = (0.5f) * obj_hfi -> I_Base;}
                  else
-                    { obj->IdqRef_A.value[0] = (0.0f);}
+                    { obj -> IdqRef_A.value[0] = (0.0f);}
                }
             else
-               { obj->IdqRef_A.value[0] = (0.0f);}
+               { obj -> IdqRef_A.value[0] = (0.0f);}
+
+
+           /* Angle and speed estimation errors.
+              ElecThetaEstError = speed1.ElecTheta - Sensorless_IPMSM_HFI.ElecThetaEst;
+              if (ElecThetaEstError > _IQ(0.5))
+              {  ElecThetaEstError -=_IQ(1.0);}
+              else if (ElecThetaEstError < _IQ(-0.5))
+              { ElecThetaEstError +=_IQ(1.0);}
+              SpeedEstError = speed1.Speed - Sensorless_IPMSM_HFI.SpeedEstFiltered;
+           */
 
             // Angle and speed estimation errors.
 
-           obj -> ElecThetaEstError = ((obj->angleENC_rad + MATH_PI)  / MATH_TWO_PI  ) - obj_hfi -> ElecThetaEst;
-           obj -> ElecThetaEstError = obj->angleENC_rad - obj_hfi -> ElecThetaEst;
+           //obj -> ElecThetaEstError = obj->angleENC_rad - obj_hfi -> ElecThetaEst;
+
+           obj -> ElecThetaEstError = ((obj->angleENC_rad) / MATH_TWO_PI ) - obj_hfi -> ElecThetaEst;
             if (obj -> ElecThetaEstError > (0.5f))
                { obj -> ElecThetaEstError -= (1.0f);}
             else if (obj -> ElecThetaEstError < (-0.5f))
@@ -2664,13 +2515,10 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
                   obj -> Vdq_out_V.value[1] = 0.0f;
 
                   obj -> flagEnableRunAndIdentify = FALSE;
-                         //      lsw = lsw_IDLE; // erase later
-                         //     SelfCommissioning_Step = SelfCommStep_RS;
-                         // SynRM: D-AXIS AND Q-AXIS MAY BE SHIFTED. ALSO NO NEED TO DETECT MAGNET POLARITY. BE CAREFUL WITH HFI-BASED SENSORLESS CONTROL ALSO. ===================================
+               // lsw = lsw_IDLE; // erase later
+               // SelfCommissioning_Step = SelfCommStep_RS;
+               // SynRM: D-AXIS AND Q-AXIS MAY BE SHIFTED. ALSO NO NEED TO DETECT MAGNET POLARITY. BE CAREFUL WITH HFI-BASED SENSORLESS CONTROL ALSO. ===================================
              }
-
-
-
         }
     }
 
@@ -2926,7 +2774,6 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
 
     if(obj -> enableFluxLinEst1 == TRUE)
         {
-
             if(obj -> enableFluxLinEst2 == TRUE)
             {
                 // Assign outputs
@@ -2934,7 +2781,32 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
             }
         }
 
+    if(obj -> enableHFI1 == TRUE)
+            {
 
+                if(obj -> enableHFI2 == TRUE)
+                {
+                    // Refs.Id = Refs.IdMagnPolarDetect;
+                    // obj -> Vdq_out_V.value[0] = obj -> Vdq_out_V.value[0] +  obj_hfi -> InjVol * obj->adcData.VdcBus_V / sqrtf(3.0f) ;
+                               //obj_hfi -> InjVol = 0;
+
+                    // Magnet polarity detection.
+                     if (obj_hfi -> MagnPolarDetectFinished == 0.0f)
+                        {  if (obj_hfi -> MagnPolarDetectMode == 1.0f)
+                              { obj -> IdqRef_A.value[0] = (-0.5f) * obj_hfi -> I_Base;}
+                           else if (obj_hfi -> MagnPolarDetectMode == 2)
+                              { obj -> IdqRef_A.value[0] = (0.5f) * obj_hfi -> I_Base;}
+                           else
+                              { obj -> IdqRef_A.value[0] = (0.0f);}
+                         }
+                      else
+                         { obj -> IdqRef_A.value[0] = (0.0f);}
+
+
+                    // Refs.Iq = _IQ(0.0);
+                    obj -> IdqRef_A.value[1] = 0.0f;
+                }
+            }
 
 
     if(obj->enableCurrentCtrl == TRUE)
@@ -2963,7 +2835,7 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
         PI_run(obj->piHandle_Iq, (obj->IdqRef_A.value[1] + sfraNoiseIq),
                obj->Idq_in_A.value[1], (float32_t*)&obj->Vdq_out_V.value[1]);
 
-#else     // !SFRA_ENABLE
+#else   // !SFRA_ENABLE
         // run the Id controller
         PI_run_series(obj->piHandle_Id,
                       obj->IdqRef_A.value[0], obj->Idq_in_A.value[0],
@@ -2973,11 +2845,38 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
         float32_t outMax_V = ti_arm_sqrt((obj->VsMax_V * obj->VsMax_V) -
                           (obj->Vdq_out_V.value[0] * obj->Vdq_out_V.value[0]));
 
+        if(obj -> enableHFI1 == TRUE)
+            {
+                if  (obj -> enableHFI2 == TRUE)
+                {
+                    //float32_t outMax_V = ti_arm_sqrt((obj->VsMax_V * obj->VsMax_V) - (obj->Vdq_out_V.value[0] * obj->Vdq_out_V.value[0]));
+                    //      idq_ctrl1.Vmax = _IQsqrt( _IQmpy(idq_ctrl1.Vmax_Init, idq_ctrl1.Vmax_Init) - _IQmpy( Sensorless_IPMSM_HFI.InjVolMagn_UdcComp, (Sensorless_IPMSM_HFI.InjVolMagn_UdcComp + _IQmpy2(_IQabs(idq_ctrl1.Vd))) ) );
+                    float32_t outMax_V = sqrtf((obj->VsMax_V * obj->VsMax_V) - ( obj_hfi -> InjVolMagn_UdcComp * obj_hfi ->Vdc_Base * ((obj_hfi -> InjVolMagn_UdcComp * obj_hfi ->Vdc_Base ) + (2.0f * (MATH_abs(obj -> IdqRef_A.value[0])))) ) );
+
+                }
+
+            }
+
+
         PI_setMinMax(obj->piHandle_Iq, -outMax_V, outMax_V);
 
         // run the Iq controller
         PI_run(obj->piHandle_Iq, obj->IdqRef_A.value[1],
-               obj->Idq_in_A.value[1], (float32_t*)&obj->Vdq_out_V.value[1]);
+        obj->Idq_in_A.value[1], (float32_t*)&obj->Vdq_out_V.value[1]);
+
+        if(obj -> enableHFI1 == TRUE)
+                {
+
+                    if(obj -> enableHFI2 == TRUE)
+                    {
+                        // Refs.Id = Refs.IdMagnPolarDetect;
+                         obj -> Vdq_out_V.value[0] = obj -> Vdq_out_V.value[0] +  (obj_hfi -> InjVol * obj->adcData.VdcBus_V / sqrtf(3.0f)) ;
+                         obj_hfi -> InjVol = 0;
+
+                    }
+                }
+
+
 #endif  // !SFRA_ENABLE
 
 
@@ -3027,8 +2926,9 @@ __attribute__ ((section(".tcm_code"))) void motor1CtrlISR(void *handle)
     }
 #endif  // MOTOR1_SSIPD
 
+
     // run the inverse Park module
-    IPARK_run(phasor.value[1], phasor.value[0], obj->Vdq_out_V.value[0], obj->Vdq_out_V.value[1], &obj->Vab_out_V.value[0], &obj->Vab_out_V.value[1]);
+    IPARK_run(phasor.value[1], phasor.value[0], obj->Vdq_out_V.value[0],obj->Vdq_out_V.value[1], &obj->Vab_out_V.value[0], &obj->Vab_out_V.value[1]);
 
     // run the space vector generator (SVGEN) module
 #if defined(MOTOR1_DCLINKSS)
